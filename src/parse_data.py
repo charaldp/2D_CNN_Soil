@@ -5,9 +5,16 @@ import spectra_parser as sp
 import os
 import numpy as np
 import pandas as pnd
+import sys
 import modelCNN2dSpectr
 from datetime import datetime
 
+epochs = int(sys.argv[1])
+undersampling_factor = float(sys.argv[2])
+v_to_h_ratio = float(sys.argv[3])
+print "Epochs: "+str(epochs)
+print "Undersampling Factor: "+str(undersampling_factor)
+print "V/H Image: "+str(v_to_h_ratio)
 # Path definitions here
 folder_with_spectra = "../dataset/sources"
 # pre_processing_techniques = [
@@ -16,29 +23,32 @@ folder_with_spectra = "../dataset/sources"
 #     "Absorbances_SG2_reduced.csv", "CR_reduced.csv"]
 pre_processing_techniques = ["reflectances.csv"]
 path_to_properties  = "../dataset/properties.csv"
-output_properties = {
-    # "clay" :5
-    # "silt": 6,
-    # "sand": 7,
+output_properties_cols = {
+    "clay" :5,
+    "silt": 6,
+    "sand": 7,
     # "pH.in.H20": 9,
-    "OC": 10
-    # "CaCO3": 11,
-    # "N": 12,
-    # "P": 13,
-    # "K": 14,
-    # "CEC": 15
+    "pH": 9,
+    "OC": 10,
+    "CaCO3": 11,
+    "N": 12,
+    "P": 13,
+    "K": 14,
+    "CEC": 15
 }
+output_properties = { sys.argv[x] : output_properties_cols[sys.argv[x]] for x in range(4, len(sys.argv)) }
+print output_properties
 
 print("Loading Data")
-data_parser = sp.SpectraParser("../dataset/Mineral_Absorbances.json")
+data_parser = sp.SpectraParser("../dataset/Woodland_Absorbances.json")
 data_parser.output_file = path_to_properties
 print("Done")
 # Output Paths
-output_path = './Output'
+output_path = '../output'
 if not os.path.exists(output_path):
     os.mkdir(output_path)
-datetime = datetime.now().strftime("%Y_%m_%d__%H_%M_%S")+'/'
-path_datetime = os.path.join(output_path, datetime)
+datetime_str = datetime.now().strftime("%Y_%m_%d__%H_%M_%S")+'/'
+path_datetime = os.path.join(output_path, datetime_str)
 if not os.path.exists(path_datetime):
     os.mkdir(path_datetime)
 for out_name, out_col in output_properties.items(): # iteritems for python2
@@ -48,6 +58,17 @@ for out_name, out_col in output_properties.items(): # iteritems for python2
         data_parser.input_spectra = os.path.join(folder_with_spectra, pre_process)
         x = data_parser.x()
         y = data_parser.y(out_col)
+        indices = []
+        indices_orig = range(len(x[0]))
+        i = 0
+        while i < len(x[0]):
+            indices.append(i)
+            i += undersampling_factor
+               
+        x_1 = []
+        for i in range(len(x)):
+            x_1.append(np.interp(indices, indices_orig, x[i]))
+        x = x_1
         rmse_train_ar = []
         rmse_val_ar = []
         rmse_test_ar = []
@@ -69,7 +90,7 @@ for out_name, out_col in output_properties.items(): # iteritems for python2
             path_fold = os.path.join(path_datetime, str(fold))
             if not os.path.exists(path_fold):
                 os.mkdir(path_fold)
-            rmse_train, rmse_val, rmse_test, determ_train, determ_val, determ_test, rpiq_train, rpiq_val, rpiq_test = modelCNN2dSpectr.customModel(path_fold, out_name, x_trn, y_trn, x_val, y_val, x_tst, y_tst)
+            rmse_train, rmse_val, rmse_test, determ_train, determ_val, determ_test, rpiq_train, rpiq_val, rpiq_test = modelCNN2dSpectr.customModel(path_fold, out_name, x_trn, y_trn, x_val, y_val, x_tst, y_tst, v_to_h_ratio, epochs)
             rmse_train_ar.append(rmse_train)
             rmse_val_ar.append(rmse_val)
             rmse_test_ar.append(rmse_test)
@@ -89,23 +110,3 @@ for out_name, out_col in output_properties.items(): # iteritems for python2
                                 'rpiq_val': np.array(rpiq_val_ar),
                                 'rpiq_test': np.array(rpiq_test_ar)})
         metrics.to_csv(path_datetime+out_name+'_metrics.csv')
-            # y_train_pred_array = np.concatenate(y_train_pred_array, y_train_pred)
-            # y_train_array = np.concatenate(y_train_array, np.array(y_trn))
-            # y_val_array = np.concatenate(y_val_array, np.array(y_val))
-            # y_val_pred_array = np.concatenate(y_val_pred_array, y_val_pred)
-            # y_test_array = np.concatenate(y_test_array, np.array(y_tst))
-            # y_test_pred_array = np.concatenate(y_test_pred_array, y_test_pred)
-        # Compute overall errors
-        # rmse_train, determ_train, rpiq_train = modelCNN2dSpectr.computeErrors(y_train_array, y_train_pred_array)
-        # rmse_val, determ_val, rpiq_val = modelCNN2dSpectr.computeErrors(y_train_array, y_train_pred_array)
-        # rmse_test, determ_test, rpiq_test = modelCNN2dSpectr.computeErrors(y_train_array, y_train_pred_array)
-        # metrics = pnd.DataFrame({'Set': ['Train', 'Val', 'Test'],
-        #                      'RMSE': [rmse_train, rmse_val, rmse_test],
-        #                      'determ': [determ_train, determ_val, determ_test],
-        #                      'rpiq': [rpiq_train, rpiq_val, rpiq_test]})
-        # metrics.to_csv(path_datetime+property+'_metrics.csv')
-
-
-
-
-
