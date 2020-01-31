@@ -1,6 +1,5 @@
 #!/usr/bin/env python
 # coding: utf-8
-
 import spectra_parser as sp
 import os
 import numpy as np
@@ -8,20 +7,20 @@ import pandas as pnd
 import sys
 import modelCNN2dSpectr
 from datetime import datetime
-
+# Usage: python parse_data.py <epochs> <undertsamplig> <v/h> [<properties>]
 epochs = int(sys.argv[1])
 undersampling_factor = float(sys.argv[2])
 v_to_h_ratio = float(sys.argv[3])
-print "Epochs: "+str(epochs)
-print "Undersampling Factor: "+str(undersampling_factor)
-print "V/H Image: "+str(v_to_h_ratio)
+print("Epochs: "+str(epochs))
+print("Undersampling Factor: "+str(undersampling_factor))
+print("V/H Image: "+str(v_to_h_ratio))
 # Path definitions here
 folder_with_spectra = "../dataset/sources"
 # pre_processing_techniques = [
 #     "Absorbances_reduced.csv", "Absorbances_SG0_SNV_reduced.csv", 
 #     "Absorbances_SG1_reduced.csv", "Absorbances_SG1_SNV_reduced.csv",
 #     "Absorbances_SG2_reduced.csv", "CR_reduced.csv"]
-pre_processing_techniques = ["reflectances.csv"]
+pre_processing_techniques = ["absorbances_sg1.csv"]
 path_to_properties  = "../dataset/properties.csv"
 output_properties_cols = {
     "clay" :5,
@@ -37,7 +36,7 @@ output_properties_cols = {
     "CEC": 15
 }
 output_properties = { sys.argv[x] : output_properties_cols[sys.argv[x]] for x in range(4, len(sys.argv)) }
-print output_properties
+print(output_properties)
 
 print("Loading Data")
 data_parser = sp.SpectraParser("../dataset/Woodland_Absorbances.json")
@@ -61,6 +60,8 @@ for out_name, out_col in output_properties.items(): # iteritems for python2
         indices = []
         indices_orig = range(len(x[0]))
         i = 0
+        print(len(x))
+        # exit()
         while i < len(x[0]):
             indices.append(i)
             i += undersampling_factor

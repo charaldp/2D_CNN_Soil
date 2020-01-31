@@ -3,16 +3,21 @@
 # from tensorflow import keras
 # from tensorflow.keras.layers import *
 # from tensorflow.keras.activations import *
+# from tensorflow.keras.initializers import *
 # from tensorflow.keras.models import Sequential,Model,load_model
 # from tensorflow.keras.optimizers import Adam,Adamax
 # from tensorflow.keras.callbacks import Callback
+
 # Tensorflow 1.X.X
+# import tensorflow
+# BACKEND=tensorflow
 import keras
 from keras.layers import *
 from keras.activations import *
 from keras.models import Sequential,Model,Input,load_model
 from keras.optimizers import Adam,Adamax
 from keras.callbacks import Callback
+from keras.initializers import *
 
 import sys,math,random,os,argparse, scipy;
 import numpy as np
@@ -24,17 +29,23 @@ from time import time
 
 
 
-class TimingCallback(Callback):
+class TrainingResetCallback(Callback):
 	def __init__(self):
 		Callback.__init__(self)
-		self.logs=[]
+		# self.logs = []
+		self.val_loss = []
 
-	def on_epoch_begin(self, epoch, logs={}):
- 		self.starttime=time()
+	# def on_epoch_begin(self, epoch, logs={}):
+	 # 		self.starttime=time()
 
 	def on_epoch_end(self, epoch, logs={}):
-		self.logs.append(time()-self.starttime)
-
+		# self.logs.append(time()-self.starttime)
+		self.val_loss.append(logs.get('val_loss'))
+		stdev = np.std(self.val_loss)
+		print(self.val_loss)
+		print('Stdev = %f' % stdev)
+		if len(self.val_loss) > 2 and stdev < 0.01:
+			self.model.stop_training = True
 
 def lucas_soil_properties():
 	return {
@@ -127,6 +138,9 @@ def spectraToSpectrogram(x_in_spectra, mode, v_to_h_ratio, input_shape):
 		num = 25
 	elif mode=='one_zero':
 		num = 50
+	print(num)
+	print(input_shape[0])
+	print(input_shape[1])
 	mi = int(v_to_h_ratio * 100)
 	nover = int(v_to_h_ratio * 50)
 	window = signal.hann(M = mi)
@@ -134,21 +148,28 @@ def spectraToSpectrogram(x_in_spectra, mode, v_to_h_ratio, input_shape):
 	x_spectrogram = np.empty(shape=(x_in_spectra.shape[0],input_shape[0],input_shape[1],1))
 	for i in range(x_in_spectra.shape[0]):
 		[x, t, spec] = signal.spectrogram(x = x_in_spectra[i], fs = 1,window = window, nperseg = mi, noverlap = nover)
+		# TODO: Examine
 		x_spectrogram[i] = (np.log(np.abs(spec.reshape(input_shape[0],input_shape[1], 1))) + num) / num
 	return x_spectrogram
 
-def extractSpectrogram(x_in_spectra, path, input_shape):
-	window = signal.hann(M = 100)
+def extractSpectrogram(x_in_spectra, path, mode, v_to_h_ratio, input_shape ):
+	if mode=='minus_1_1':
+		num = 25
+	elif mode=='one_zero':
+		num = 50
+	mi = int(v_to_h_ratio * 100)
+	nover = int(v_to_h_ratio * 50)
+	window = signal.hann(M = mi)
 	x_in_spectra = np.array(x_in_spectra)
-	x_spectrogram = np.empty(shape=(x_in_spectra.shape[0],51,83,1))
+	x_spectrogram = np.empty(shape=(x_in_spectra.shape[0],input_shape[0],input_shape[1],1))
 	i = 0
 	while i < x_in_spectra.shape[0]:
-		[x, t, spec] = signal.spectrogram(x = x_in_spectra[i], fs = 1,window = window, nperseg = 100, noverlap = 50)
-		plt.pcolormesh(t, x, spec)
+		[x, t, spec] = signal.spectrogram(x = x_in_spectra[i], fs = 1,window = window, nperseg = mi, noverlap = nover)
+		plt.pcolormesh(t, x, (np.log(np.abs(spec)) + num) / num)
 		plt.title('Spectrogtam Magnitude')
 		plt.ylabel('Frequency')
 		plt.xlabel('Wavelength')
-		plt.savefig(path+'Spectrogram'+str(i))
+		plt.savefig(path+'/Spectrogram'+str(i))
 		plt.close()
 		i += 15
 
@@ -176,6 +197,11 @@ def outputFromNormalRange(y_norm, prop, mode):
 		y = outputFromNormalRange((y_norm - 0.5) * 2, prop, 'statistic_minus_1_1')
 	return y
 
+def applySpectraSavgol( x_in_spectra, window_length, polyorder, deriv ):
+	spectra_out = signal.savgol_filter(x, window_length, polyorder, deriv)
+	return spectra_out
+
+
 def customModel( fold_path, prop, x_in_train, y_train, x_in_val, y_val, x_in_test, y_test, v_to_h_ratio, epochs ):
 	# examples
 	# sig = np.array([0.8485075, 0.8305435, 0.8111145, 0.7911465, 0.771278, 0.7514895, 0.7318965, 0.7132245, 0.6964255, 0.6820615, 0.6694205, 0.6572085, 0.6448775, 0.6324175, 0.619829, 0.607176, 0.594449, 0.5817265, 0.5690665, 0.556516, 0.5441905, 0.532344, 0.5211715, 0.510746, 0.5012075, 0.4924195, 0.484395, 0.4773365, 0.4712655, 0.4657845, 0.460925, 0.456989, 0.453599, 0.4505275, 0.447719, 0.4452245, 0.4430335, 0.440989, 0.438935, 0.436865, 0.4347855, 0.432636, 0.4303165, 0.4278575, 0.4254725, 0.423303, 0.421356, 0.418908, 0.4161595, 0.4135565, 0.411108, 0.4087575, 0.4064495, 0.4041695, 0.4019135, 0.3997085, 0.397574, 0.3956365, 0.393632, 0.391606, 0.390155, 0.3882255, 0.386928, 0.3846515, 0.3833, 0.3824415, 0.3812305, 0.379433, 0.377684, 0.37616, 0.37476, 0.373362, 0.372027, 0.370769, 0.369596, 0.36845, 0.367319, 0.3662905, 0.3654925, 0.3650185, 0.3646835, 0.364473, 0.3644315, 0.3646575, 0.364988, 0.364876, 0.364666, 0.3671875, 0.3732585, 0.387794, 0.4092835, 0.4295605, 0.427887, 0.415513, 0.4072605, 0.4024985, 0.400385, 0.397271, 0.3924035, 0.387622, 0.3833815, 0.379686, 0.376497, 0.3738025, 0.37154, 0.369566, 0.367858, 0.366302, 0.364806, 0.3633965, 0.362046, 0.360856, 0.359756, 0.35879, 0.3579205, 0.357241, 0.3566355, 0.3562355, 0.3561795, 0.3560545, 0.3559995, 0.356414, 0.35714, 0.3579315, 0.3583, 0.3591455, 0.360191, 0.360945, 0.3615095, 0.3618295, 0.3616085, 0.361041, 0.3601855, 0.3598165, 0.3603275, 0.3628805, 0.367605, 0.37754, 0.403819, 0.451898, 0.521133, 0.5580245, 0.5475945, 0.5318235, 0.5196795, 0.5096015, 0.499838, 0.4897885, 0.4790335, 0.4679175, 0.457134, 0.447401, 0.43918, 0.4326225, 0.4276125, 0.423608, 0.420089, 0.4169495, 0.4144955, 0.4128725, 0.4116175, 0.410378, 0.4086275, 0.4071945, 0.4075665, 0.4103635, 0.4146465, 0.4198195, 0.4266315, 0.4375615, 0.4525525, 0.4634185, 0.4496405, 0.439537, 0.436565, 0.434534, 0.432961, 0.433877, 0.4388175, 0.4450415, 0.450283, 0.454885, 0.4589205, 0.4653055, 0.4742115, 0.4833225, 0.4891085, 0.4941495, 0.5006855, 0.5066255, 0.5116475, 0.518272, 0.5268075, 0.5370325, 0.547965, 0.557712, 0.566464, 0.574841, 0.5829305, 0.5904995])
@@ -184,93 +210,82 @@ def customModel( fold_path, prop, x_in_train, y_train, x_in_val, y_val, x_in_tes
 	output_mode = 'statistic_minus_1_1'
 	input_mode = 'minus_1_1'
 
-	# TODO: Add undersampling option
+	# x_spectra_savgol = applySpectraSavgol( x_in_spectra, 101, 3, 1 )
+	# return 0, 0, 0, 0, 0, 0, 0, 0, 0
 	input_shape = getInputShape(x_in_train[0], v_to_h_ratio)
 	x_train_spec = spectraToSpectrogram(x_in_train, input_mode, v_to_h_ratio, input_shape)
 	x_val_spec = spectraToSpectrogram(x_in_val, input_mode, v_to_h_ratio, input_shape)
 	x_test_spec = spectraToSpectrogram(x_in_test, input_mode, v_to_h_ratio, input_shape)
+	# extractSpectrogram(x_in_train, fold_path, input_mode, v_to_h_ratio, input_shape)
 
 	# Normalize output properties at range [-1, 1]
 	y_train = outputAtNormalRange(np.array(y_train), prop, output_mode)
 	y_test = outputAtNormalRange(np.array(y_test), prop, output_mode)
 	y_val = outputAtNormalRange(np.array(y_val), prop, output_mode)
-	# Train_Min = [];
-	# Train_Max = [];
-
-	# Using Spectrogram
-	# plt.pcolormesh(t2, x, np.log(np.abs(spec)))
-	# plt.title('Spectrogtam Magnitude')
-	# plt.ylabel('Frequency')
-	# plt.xlabel('Wavelength')
-	# plt.savefig('./Output/SignalSpectrogram')
-	# plt.close()
-
-	# Input Spectra
-	# plt.plot(X_train[0])
-	# plt.savefig('./Output/X_in')
-	# plt.close()
-
-	# output plot
-	# plt.plot(Y_train)
-	# plt.savefig('Y_train')
-	# plt.close()
-	# exit()
 
 	print(x_train_spec.shape)
-	print(x_train_spec[0])
+	print(np.amin(x_train_spec))
+	print(np.amax(x_train_spec))
 	input_shape_1 = tuple([input_shape[0], input_shape[1], 1])
-	
-	# plt.imshow(X_train_spec[0])
-	# plt.savefig('Spectrogram')
-	# plt.close()
-	
+
 	# To try activations: (relu, elu, tanh, )
 	activation_fun = 'relu'
+	kernel_initializer = 'random_uniform'
+	bias_initializer = 'zeros'
 	#create model
-	model = Sequential()
-	# model.add(Conv2D(64, kernel_size=3, input_shape=input_shape_1))
-	model.add(Conv2D(64, kernel_size=3, padding='same', input_shape=input_shape_1))
-	model.add(BatchNormalization())
-	model.add(ReLU())
-	# Layer 2
-	model.add(MaxPooling2D(pool_size=(2, 2)))
-	# Layer 3
-	model.add(Conv2D(128, kernel_size=3, padding='same'))
-	model.add(BatchNormalization())
-	model.add(ReLU())
-	# Layer 4
-	model.add(Conv2D(256, kernel_size=3, padding='same'))
-	model.add(BatchNormalization())
-	model.add(ReLU())
-	# model.add(Conv2D(32, kernel_size=3, padding='same'))
-	# model.add(ReLU())
-	# Layer 5	
-	model.add(MaxPooling2D(pool_size=(2, 2)))
-	# Layer 6
-	model.add(Conv2D(512, kernel_size=3, padding='same'))
-	model.add(BatchNormalization())
-	model.add(ReLU())
-	# Layer 7
-	model.add(Conv2D(64, kernel_size=3, padding='same'))
-	model.add(BatchNormalization())
-	model.add(ReLU())
-	# Layer 8
-	model.add(Flatten(input_shape=model.output_shape[1:]))
-	# model.add(Dense(80))
-	model.add(Dense(100))
-	# model.add(Dense(10))
-	model.add(ReLU())
-	# model.add(Dropout(0.25))
-	# Layer 9
-	model.add(Dense(1, activation='linear'))
-	#compile model using accuracy to measure model performance
-	model.compile(optimizer='adam', loss='mean_squared_error', metrics=['mse'])
-	print(model.summary())
-	#train the model
-	# tcb = TimingCallback()
-	# model.fit(x_train_spec, y_train, validation_data=(x_val_spec, y_val), epochs=5, batch_size=20, callbacks=[tcb])
-	history = model.fit(x_train_spec, y_train, validation_data=(x_val_spec, y_val), epochs=5, batch_size=10)
-	print(history.history)
+	patience = 0
+	while patience < 5:
+		model = Sequential()
+		# model.add(Conv2D(64, kernel_size=3, input_shape=input_shape_1))
+		model.add(Conv2D(64, kernel_size=3, padding='same', input_shape=input_shape_1, kernel_initializer=kernel_initializer, bias_initializer=bias_initializer))
+		model.add(BatchNormalization())
+		model.add(ReLU())
+		# Layer 2
+		model.add(MaxPooling2D(pool_size=(2, 2)))
+		# Layer 3
+		model.add(Conv2D(128, kernel_size=3, padding='same', kernel_initializer=kernel_initializer, bias_initializer=bias_initializer))
+		model.add(BatchNormalization())
+		model.add(ReLU())
+		# Layer 4
+		model.add(Conv2D(256, kernel_size=3, padding='same', kernel_initializer=kernel_initializer, bias_initializer=bias_initializer))
+		model.add(BatchNormalization())
+		model.add(ReLU())
+		# model.add(Conv2D(32, kernel_size=3, padding='same'))
+		# model.add(ReLU())
+		# Layer 5	
+		model.add(MaxPooling2D(pool_size=(2, 2)))
+		# Layer 6
+		model.add(Conv2D(512, kernel_size=3, padding='same', kernel_initializer=kernel_initializer, bias_initializer=bias_initializer))
+		model.add(BatchNormalization())
+		model.add(ReLU())
+		# Layer 7
+		model.add(Conv2D(64, kernel_size=3, padding='same', kernel_initializer=kernel_initializer, bias_initializer=bias_initializer))
+		model.add(BatchNormalization())
+		model.add(ReLU())
+		# Layer 8
+		model.add(Flatten(input_shape=model.output_shape[1:]))
+		# model.add(Dense(80))
+		model.add(Dropout(0.5))
+		model.add(Dense(10, kernel_initializer=kernel_initializer, bias_initializer=bias_initializer))
+		# model.add(Dense(10))
+		model.add(ReLU())
+		# Layer 9
+		model.add(Dense(1, activation='linear', kernel_initializer=kernel_initializer, bias_initializer=bias_initializer))
+		#compile model using accuracy to measure model performance
+		model.compile(optimizer='adam', loss='mean_squared_error', metrics=['mse'])
+		print(model.summary())
+		#train the model
+		trcb = TrainingResetCallback()
+		# model.fit(x_train_spec, y_train, validation_data=(x_val_spec, y_val), epochs=5, batch_size=20, callbacks=[tcb])
+		history = model.fit(x_train_spec, y_train, validation_data=(x_val_spec, y_val), epochs=epochs, batch_size=32, callbacks=[trcb])
+		stand_d = np.std(history.history['val_loss'])
+		print("Learning Curve Standard Deviation: "+str(stand_d))
+		train = stand_d < 0.01
+		if not train:
+			break
+		patience += 1
+		print("Reinitializing Model...")
+
 	plt.plot(history.history['loss'])
 	plt.plot(history.history['val_loss'])
 	plt.title('Global Model Loss')
