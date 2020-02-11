@@ -1,17 +1,23 @@
 #!/usr/bin/env python
 # coding: utf-8
+import sys
+if (len(sys.argv) < 5):
+    print('Error! Incorrect arguments')
+    print('Usage: python parse_data.py <epochs> <undertsamplig> <v/h> <property1> <property2> <etc>')
+    exit(1)
 import spectra_parser as sp
 import os
 import numpy as np
 import pandas as pnd
-import sys
 import modelCNN2dSpectr
 from datetime import datetime
-# Usage: python parse_data.py <epochs> <undertsamplig> <v/h> [<properties>]
+# Usage: python parse_data.py <epochs> <undertsamplig> <v/h> <property1> <property2> ...
 epochs = int(sys.argv[1])
-undersampling_factor = float(sys.argv[2])
-v_to_h_ratio = float(sys.argv[3])
+batch_size = int(sys.argv[2])
+undersampling_factor = float(sys.argv[3])
+v_to_h_ratio = float(sys.argv[4])
 print("Epochs: "+str(epochs))
+print("Batch Size: "+str(batch_size))
 print("Undersampling Factor: "+str(undersampling_factor))
 print("V/H Image: "+str(v_to_h_ratio))
 # Path definitions here
@@ -20,7 +26,7 @@ folder_with_spectra = "../dataset/sources"
 #     "Absorbances_reduced.csv", "Absorbances_SG0_SNV_reduced.csv", 
 #     "Absorbances_SG1_reduced.csv", "Absorbances_SG1_SNV_reduced.csv",
 #     "Absorbances_SG2_reduced.csv", "CR_reduced.csv"]
-pre_processing_techniques = ["absorbances_sg1.csv"]
+pre_processing_techniques = ["absorbances_sg1.csv", "reflectances.csv"]
 path_to_properties  = "../dataset/properties.csv"
 output_properties_cols = {
     "clay" :5,
@@ -35,11 +41,11 @@ output_properties_cols = {
     "K": 14,
     "CEC": 15
 }
-output_properties = { sys.argv[x] : output_properties_cols[sys.argv[x]] for x in range(4, len(sys.argv)) }
+output_properties = { sys.argv[x] : output_properties_cols[sys.argv[x]] for x in range(5, len(sys.argv)) }
 print(output_properties)
 
 print("Loading Data")
-data_parser = sp.SpectraParser("../dataset/Woodland_Absorbances.json")
+data_parser = sp.SpectraParser("../dataset/Mineral_Absorbances.json")
 data_parser.output_file = path_to_properties
 print("Done")
 # Output Paths
@@ -53,6 +59,9 @@ if not os.path.exists(path_datetime):
 for out_name, out_col in output_properties.items(): # iteritems for python2
     print("Prop "+out_name)
     for pre_process in pre_processing_techniques:
+        preproc_datetime = os.path.join(path_datetime, pre_process[0:len(pre_process) - 4])
+        if not os.path.exists(preproc_datetime):
+            os.mkdir(preproc_datetime)
         print("Preproc "+pre_process)
         data_parser.input_spectra = os.path.join(folder_with_spectra, pre_process)
         x = data_parser.x()
@@ -88,10 +97,10 @@ for out_name, out_col in output_properties.items(): # iteritems for python2
             y_val = [y[i] for i in val]
             x_tst = [x[i] for i in data_parser.tst_indices]
             y_tst = [y[i] for i in data_parser.tst_indices]
-            path_fold = os.path.join(path_datetime, str(fold))
+            path_fold = os.path.join(preproc_datetime, str(fold))
             if not os.path.exists(path_fold):
                 os.mkdir(path_fold)
-            rmse_train, rmse_val, rmse_test, determ_train, determ_val, determ_test, rpiq_train, rpiq_val, rpiq_test = modelCNN2dSpectr.customModel(path_fold, out_name, x_trn, y_trn, x_val, y_val, x_tst, y_tst, v_to_h_ratio, epochs)
+            rmse_train, rmse_val, rmse_test, determ_train, determ_val, determ_test, rpiq_train, rpiq_val, rpiq_test = modelCNN2dSpectr.customModel(path_fold, out_name, x_trn, y_trn, x_val, y_val, x_tst, y_tst, v_to_h_ratio, epochs, batch_size)
             rmse_train_ar.append(rmse_train)
             rmse_val_ar.append(rmse_val)
             rmse_test_ar.append(rmse_test)
@@ -110,4 +119,4 @@ for out_name, out_col in output_properties.items(): # iteritems for python2
                                 'rpiq_train': np.array(rpiq_train_ar),
                                 'rpiq_val': np.array(rpiq_val_ar),
                                 'rpiq_test': np.array(rpiq_test_ar)})
-        metrics.to_csv(path_datetime+out_name+'_metrics.csv')
+        metrics.to_csv(preproc_datetime+'/'+out_name+'_metrics.csv')
