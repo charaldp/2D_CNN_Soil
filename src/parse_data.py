@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # coding: utf-8
 import sys
-if (len(sys.argv) < 5):
+if (len(sys.argv) < 6):
     print('Error! Incorrect arguments')
     print('Usage: python parse_data.py <epochs> <undertsamplig> <v/h> <property1> <property2> <etc>')
     exit(1)

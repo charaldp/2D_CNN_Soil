@@ -8,7 +8,7 @@ if tensorflow_ver[0] == '2':
 	from tensorflow.keras.initializers import *
 	from tensorflow.keras.models import Sequential,Model,load_model
 	from tensorflow.keras.optimizers import Adam,Adamax
-	from tensorflow.keras.callbacks import Callback, ReduceLROnPlateau, EarlyStopping
+	from tensorflow.keras.callbacks import Callback, LambdaCallback, ReduceLROnPlateau, EarlyStopping, ModelCheckpoint
 elif tensorflow_ver[0] == '1':
 	# Tensorflow 1.X.X
 	BACKEND=tensorflow
@@ -17,7 +17,7 @@ elif tensorflow_ver[0] == '1':
 	from keras.activations import *
 	from keras.models import Sequential,Model,Input,load_model
 	from keras.optimizers import Adam,Adamax
-	from keras.callbacks import Callback, LambdaCallback, ReduceLROnPlateau, EarlyStopping
+	from keras.callbacks import Callback, LambdaCallback, ReduceLROnPlateau, EarlyStopping, ModelCheckpoint
 	from keras.initializers import *
 	from keras import backend as K
 
@@ -254,11 +254,18 @@ def customModel( fold_path, prop, x_in_train, y_train, x_in_val, y_val, x_in_tes
 	print(np.amin(x_train_spec))
 	print(np.amax(x_train_spec))
 	input_shape_1 = tuple([input_shape[0], input_shape[1], 1])
+	input_shape_2 = tuple([input_shape_1[0] / 2, input_shape_1[1] / 2, 1])
+	input_shape_3 = tuple([input_shape_2[0] / 2, input_shape_2[1] / 2, 1])
+	input_shape_4 = tuple([input_shape_3[0] / 2, input_shape_3[1] / 2, 1])
+	# weights1 = np.array(np.array(input_shape[0], input_shape[1]), 64)
 
 	# To try activations: (relu, elu, tanh, )
 	activation_fun = 'relu'
 	kernel_initializer = 'random_uniform'
 	bias_initializer = 'zeros'
+	constant_initializer = Constant(value=-0.01)
+	# kernel_initializer = constant_initializer
+	optimizer = Adam(lr=0.0005)
 	#create model
 	patience = 0
 	while patience < 5:
@@ -270,11 +277,11 @@ def customModel( fold_path, prop, x_in_train, y_train, x_in_val, y_val, x_in_tes
 		# Layer 2
 		model.add(MaxPooling2D(pool_size=(2, 2)))
 		# Layer 3
-		model.add(Conv2D(128, kernel_size=3, padding='same', kernel_initializer=kernel_initializer, bias_initializer=bias_initializer))
+		model.add(Conv2D(128, kernel_size=3, padding='same', input_shape=input_shape_2, kernel_initializer=kernel_initializer, bias_initializer=bias_initializer))
 		model.add(BatchNormalization())
 		model.add(ReLU())
 		# Layer 4
-		model.add(Conv2D(256, kernel_size=3, padding='same', kernel_initializer=kernel_initializer, bias_initializer=bias_initializer))
+		model.add(Conv2D(256, kernel_size=3, padding='same', input_shape=input_shape_2, kernel_initializer=kernel_initializer, bias_initializer=bias_initializer))
 		model.add(BatchNormalization())
 		model.add(ReLU())
 		# model.add(Conv2D(32, kernel_size=3, padding='same'))
@@ -282,31 +289,32 @@ def customModel( fold_path, prop, x_in_train, y_train, x_in_val, y_val, x_in_tes
 		# Layer 5	
 		model.add(MaxPooling2D(pool_size=(2, 2)))
 		# Layer 6
-		model.add(Conv2D(512, kernel_size=3, padding='same', kernel_initializer=kernel_initializer, bias_initializer=bias_initializer))
+		model.add(Conv2D(512, kernel_size=3, padding='same', input_shape=input_shape_3, kernel_initializer=kernel_initializer, bias_initializer=bias_initializer))
 		model.add(BatchNormalization())
 		model.add(ReLU())
 		# Layer 7
-		model.add(Conv2D(64, kernel_size=3, padding='same', kernel_initializer=kernel_initializer, bias_initializer=bias_initializer))
+		model.add(Conv2D(64, kernel_size=3, padding='same', input_shape=input_shape_3, kernel_initializer=kernel_initializer, bias_initializer=bias_initializer))
 		model.add(BatchNormalization())
 		model.add(ReLU())
 		# Layer 8
 		model.add(Flatten(input_shape=model.output_shape[1:]))
 		# model.add(Dense(80))
-		model.add(Dense(100, kernel_initializer=kernel_initializer, bias_initializer=bias_initializer))
 		model.add(Dropout(0.5))
+		model.add(Dense(100, kernel_initializer=kernel_initializer, bias_initializer=bias_initializer))
 		model.add(BatchNormalization())
 		# model.add(Dense(10))
 		model.add(ReLU())
 		# Layer 9
 		model.add(Dense(1, activation='linear', kernel_initializer=kernel_initializer, bias_initializer=bias_initializer))
 		#compile model using accuracy to measure model performance
-		model.compile(optimizer='adam', loss='mean_squared_error', metrics=['mse'])
+		model.compile(optimizer=optimizer, loss='mean_squared_error', metrics=['mse'])
 		print(model.summary())
 		#train the model
 		clbcks = []
 		clbcks.append(TrainingResetCallback())
-		clbcks.append(ReduceLROnPlateau())
-		clbcks.append(EarlyStopping(monitor='val_loss', min_delta=0, patience=100, verbose=0, mode='min', baseline=None, restore_best_weights=True))
+		# clbcks.append(ReduceLROnPlateau(min_lr=0.0001))
+		clbcks.append(ModelCheckpoint(fold_path+'/'+prop+'_weights.{epoch:02d}-{val_loss:.2f}.hdf5', monitor='val_loss', verbose=0, save_best_only=True, save_weights_only=True, mode='min', period=1))
+		# clbcks.append(EarlyStopping(monitor='val_loss', min_delta=0, patience=0, verbose=0, mode='min', baseline=None, restore_best_weights=True))
 		# clbcks.append(PrintModelCallback())
 		history = model.fit(x_train_spec, y_train, validation_data=(x_val_spec, y_val), epochs=epochs, batch_size=batch_size, callbacks=clbcks)
 		stand_d = np.std(history.history['val_loss'])
@@ -335,7 +343,7 @@ def customModel( fold_path, prop, x_in_train, y_train, x_in_val, y_val, x_in_tes
 	y_train_pred = model.predict(x_train_spec)
 	y_val_pred = model.predict(x_val_spec)
 	y_test_pred = model.predict(x_test_spec)
-	model.save(fold_path+'/'+prop+'model')
+	# model.save(fold_path+'/'+prop+'model')
 	y_test = np.array(y_test)
 
 	# Return to initial prop
