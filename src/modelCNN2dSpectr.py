@@ -293,7 +293,8 @@ def customModel( fold_path, prop, x_in_train, y_train, x_in_val, y_val, x_in_tes
 		model.add(BatchNormalization())
 		model.add(ReLU())
 		# Layer 7
-		model.add(Conv2D(64, kernel_size=3, padding='same', input_shape=input_shape_3, kernel_initializer=kernel_initializer, bias_initializer=bias_initializer))
+		model.add(Conv2D(512, kernel_size=3, padding='same', input_shape=input_shape_3, kernel_initializer=kernel_initializer, bias_initializer=bias_initializer))
+		#model.add(Conv2D(64, kernel_size=3, padding='same', input_shape=input_shap
 		model.add(BatchNormalization())
 		model.add(ReLU())
 		# Layer 8
