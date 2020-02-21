@@ -3,7 +3,7 @@
 import sys
 if (len(sys.argv) < 6):
     print('Error! Incorrect arguments')
-    print('Usage: python parse_data.py <epochs> <undertsamplig> <v/h> <property1> <property2> <etc>')
+    print('Usage: python parse_data.py <epochs> <batch_size> <undertsamplin g> <v/h> <property1> <property2> <etc>')
     exit(1)
 import spectra_parser as sp
 import os
@@ -11,7 +11,6 @@ import numpy as np
 import pandas as pnd
 import modelCNN2dSpectr
 from datetime import datetime
-# Usage: python parse_data.py <epochs> <undertsamplig> <v/h> <property1> <property2> ...
 epochs = int(sys.argv[1])
 batch_size = int(sys.argv[2])
 undersampling_factor = float(sys.argv[3])
