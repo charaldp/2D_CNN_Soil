@@ -344,6 +344,10 @@ def customModel( fold_path, prop, x_in_train, y_train, x_in_val, y_val, x_in_tes
 	y_train_pred = model.predict(x_train_spec)
 	y_val_pred = model.predict(x_val_spec)
 	y_test_pred = model.predict(x_test_spec)
+	rmse_val, determ_val, rpiq_val = computeErrors(y_val, y_val_pred)
+	print('rmse_val = '+str(rmse_val))
+	print('determ_val = '+str(determ_val))
+	print('rpiq_val = '+str(rpiq_val))
 	# model.save(fold_path+'/'+prop+'model')
 	y_test = np.array(y_test)
 
