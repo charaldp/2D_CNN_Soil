@@ -21,7 +21,7 @@ elif tensorflow_ver[0] == '1':
 	from keras.initializers import *
 	from keras import backend as K
 
-import sys,math,random,os,argparse, scipy;
+import sys,math,random,os,argparse, scipy
 import numpy as np
 from scipy import signal
 import matplotlib.pyplot as plt
@@ -228,6 +228,59 @@ def applySpectraSavgol( x_in_spectra, window_length, polyorder, deriv ):
 	spectra_out = signal.savgol_filter(x, window_length, polyorder, deriv)
 	return spectra_out
 
+def createModel(input_shape, printDetails):
+	# To try activations: (relu, elu, tanh, )
+	input_shape_1 = tuple([input_shape[0], input_shape[1], 1])
+	input_shape_2 = tuple([input_shape_1[0] / 2, input_shape_1[1] / 2, 1])
+	input_shape_3 = tuple([input_shape_2[0] / 2, input_shape_2[1] / 2, 1])
+	input_shape_4 = tuple([input_shape_3[0] / 2, input_shape_3[1] / 2, 1])
+	activation_fun = 'relu'
+	kernel_initializer = 'random_uniform'
+	bias_initializer = 'zeros'
+	constant_initializer = Constant(value=-0.01)
+	# kernel_initializer = constant_initializer
+	optimizer = Adam(lr=0.0005)
+	#create model
+	model = Sequential()
+	# Layer 1
+	model.add(Conv2D(64, kernel_size=3, padding='same', input_shape=input_shape_1, kernel_initializer=kernel_initializer, bias_initializer=bias_initializer))
+	model.add(BatchNormalization())
+	model.add(ReLU())
+	# Layer 2
+	model.add(MaxPooling2D(pool_size=(2, 2)))
+	# Layer 3
+	model.add(Conv2D(128, kernel_size=3, padding='same', input_shape=input_shape_2, kernel_initializer=kernel_initializer, bias_initializer=bias_initializer))
+	model.add(BatchNormalization())
+	model.add(ReLU())
+	# Layer 4
+	model.add(Conv2D(256, kernel_size=3, padding='same', input_shape=input_shape_2, kernel_initializer=kernel_initializer, bias_initializer=bias_initializer))
+	model.add(BatchNormalization())
+	model.add(ReLU())
+	# Layer 5	
+	model.add(MaxPooling2D(pool_size=(2, 2)))
+	# Layer 6
+	model.add(Conv2D(512, kernel_size=3, padding='same', input_shape=input_shape_3, kernel_initializer=kernel_initializer, bias_initializer=bias_initializer))
+	model.add(BatchNormalization())
+	model.add(ReLU())
+	# Layer 7
+	model.add(Conv2D(64, kernel_size=3, padding='same', input_shape=input_shape_3, kernel_initializer=kernel_initializer, bias_initializer=bias_initializer))
+	model.add(BatchNormalization())
+	model.add(ReLU())
+	# Layer 8
+	model.add(Flatten(input_shape=model.output_shape[1:]))
+	model.add(Dropout(0.5))
+	model.add(Dense(100, kernel_initializer=kernel_initializer, bias_initializer=bias_initializer))
+	model.add(BatchNormalization())
+	# model.add(Dense(10))
+	model.add(ReLU())
+	# Layer 9
+	model.add(Dense(1, activation='linear', kernel_initializer=kernel_initializer, bias_initializer=bias_initializer))
+	#compile model using accuracy to measure model performance
+	model.compile(optimizer=optimizer, loss='mean_squared_error', metrics=['mse'])
+	if printDetails:
+		print(model.summary())
+	return model
+
 
 def customModel( fold_path, prop, x_in_train, y_train, x_in_val, y_val, x_in_test, y_test, v_to_h_ratio, epochs, batch_size ):
 	# examples
@@ -253,71 +306,21 @@ def customModel( fold_path, prop, x_in_train, y_train, x_in_val, y_val, x_in_tes
 	print(x_train_spec.shape)
 	print(np.amin(x_train_spec))
 	print(np.amax(x_train_spec))
-	input_shape_1 = tuple([input_shape[0], input_shape[1], 1])
-	input_shape_2 = tuple([input_shape_1[0] / 2, input_shape_1[1] / 2, 1])
-	input_shape_3 = tuple([input_shape_2[0] / 2, input_shape_2[1] / 2, 1])
-	input_shape_4 = tuple([input_shape_3[0] / 2, input_shape_3[1] / 2, 1])
+	
 	# weights1 = np.array(np.array(input_shape[0], input_shape[1]), 64)
 
-	# To try activations: (relu, elu, tanh, )
-	activation_fun = 'relu'
-	kernel_initializer = 'random_uniform'
-	bias_initializer = 'zeros'
-	constant_initializer = Constant(value=-0.01)
-	# kernel_initializer = constant_initializer
-	optimizer = Adam(lr=0.0005)
-	#create model
 	patience = 0
 	while patience < 5:
-		model = Sequential()
-		# model.add(Conv2D(64, kernel_size=3, input_shape=input_shape_1))
-		model.add(Conv2D(64, kernel_size=3, padding='same', input_shape=input_shape_1, kernel_initializer=kernel_initializer, bias_initializer=bias_initializer))
-		model.add(BatchNormalization())
-		model.add(ReLU())
-		# Layer 2
-		model.add(MaxPooling2D(pool_size=(2, 2)))
-		# Layer 3
-		model.add(Conv2D(128, kernel_size=3, padding='same', input_shape=input_shape_2, kernel_initializer=kernel_initializer, bias_initializer=bias_initializer))
-		model.add(BatchNormalization())
-		model.add(ReLU())
-		# Layer 4
-		model.add(Conv2D(256, kernel_size=3, padding='same', input_shape=input_shape_2, kernel_initializer=kernel_initializer, bias_initializer=bias_initializer))
-		model.add(BatchNormalization())
-		model.add(ReLU())
-		# model.add(Conv2D(32, kernel_size=3, padding='same'))
-		# model.add(ReLU())
-		# Layer 5	
-		model.add(MaxPooling2D(pool_size=(2, 2)))
-		# Layer 6
-		model.add(Conv2D(512, kernel_size=3, padding='same', input_shape=input_shape_3, kernel_initializer=kernel_initializer, bias_initializer=bias_initializer))
-		model.add(BatchNormalization())
-		model.add(ReLU())
-		# Layer 7
-		model.add(Conv2D(512, kernel_size=3, padding='same', input_shape=input_shape_3, kernel_initializer=kernel_initializer, bias_initializer=bias_initializer))
-		#model.add(Conv2D(64, kernel_size=3, padding='same', input_shape=input_shap
-		model.add(BatchNormalization())
-		model.add(ReLU())
-		# Layer 8
-		model.add(Flatten(input_shape=model.output_shape[1:]))
-		# model.add(Dense(80))
-		model.add(Dropout(0.5))
-		model.add(Dense(100, kernel_initializer=kernel_initializer, bias_initializer=bias_initializer))
-		model.add(BatchNormalization())
-		# model.add(Dense(10))
-		model.add(ReLU())
-		# Layer 9
-		model.add(Dense(1, activation='linear', kernel_initializer=kernel_initializer, bias_initializer=bias_initializer))
-		#compile model using accuracy to measure model performance
-		model.compile(optimizer=optimizer, loss='mean_squared_error', metrics=['mse'])
-		print(model.summary())
+		model = createModel(input_shape, printDetails = True)
 		#train the model
 		clbcks = []
 		clbcks.append(TrainingResetCallback())
 		# clbcks.append(ReduceLROnPlateau(min_lr=0.0001))
-		clbcks.append(ModelCheckpoint(fold_path+'/'+prop+'_weights.{epoch:02d}-{val_loss:.2f}.hdf5', monitor='val_loss', verbose=0, save_best_only=True, save_weights_only=True, mode='min', period=1))
+		clbcks.append(ModelCheckpoint(fold_path+'/'+prop+'_weights.hdf5', monitor='val_loss', verbose=0, save_best_only=True, save_weights_only=True, mode='min', period=1))
+		# {epoch:02d}-{val_loss:.2f}.
 		# clbcks.append(EarlyStopping(monitor='val_loss', min_delta=0, patience=0, verbose=0, mode='min', baseline=None, restore_best_weights=True))
 		# clbcks.append(PrintModelCallback())
-		history = model.fit(x_train_spec, y_train, validation_data=(x_val_spec, y_val), epochs=epochs, batch_size=batch_size, callbacks=clbcks)
+ 		history = model.fit(x_train_spec, y_train, validation_data=(x_val_spec, y_val), epochs=epochs, batch_size=batch_size, callbacks=clbcks)
 		stand_d = np.std(history.history['val_loss'])
 		mean = np.mean(history.history['val_loss'])
 		print("Learning Curve Standard Deviation: "+str(stand_d))
@@ -340,7 +343,10 @@ def customModel( fold_path, prop, x_in_train, y_train, x_in_val, y_val, x_in_tes
 	# for i in range(x_test_spec.shape[0]):
 	# 	y_test_pred.append(model.predict(x_test_spec[i].reshape(1,51,83,1)).reshape(1).tolist())
 	# y_test_pred = np.array(y_test_pred)
-
+	model_weights = fold_path+'/'+prop+'_weights.hdf5'
+	model = createModel(input_shape, printDetails = False)
+	model.load_weights(model_weights)
+	# TODO: restore model...
 	y_train_pred = model.predict(x_train_spec)
 	y_val_pred = model.predict(x_val_spec)
 	y_test_pred = model.predict(x_test_spec)
@@ -351,7 +357,7 @@ def customModel( fold_path, prop, x_in_train, y_train, x_in_val, y_val, x_in_tes
 	# model.save(fold_path+'/'+prop+'model')
 	y_test = np.array(y_test)
 
-	# Return to initial prop
+	# Return to initial prop range
 	y_train = outputFromNormalRange(y_train, prop, output_mode)
 	y_test = outputFromNormalRange(y_test, prop, output_mode)
 	y_val = outputFromNormalRange(y_val, prop, output_mode)

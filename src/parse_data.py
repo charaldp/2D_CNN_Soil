@@ -3,7 +3,7 @@
 import sys
 if (len(sys.argv) < 6):
     print('Error! Incorrect arguments')
-    print('Usage: python parse_data.py <epochs> <batch_size> <undertsamplin g> <v/h> <property1> <property2> <etc>')
+    print('Usage: python parse_data.py <epochs> <batch_size> <undertsampling> <v/h> <property1> <property2> <etc>')
     exit(1)
 import spectra_parser as sp
 import os
