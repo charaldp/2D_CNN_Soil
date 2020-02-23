@@ -320,7 +320,7 @@ def customModel( fold_path, prop, x_in_train, y_train, x_in_val, y_val, x_in_tes
 		# {epoch:02d}-{val_loss:.2f}.
 		# clbcks.append(EarlyStopping(monitor='val_loss', min_delta=0, patience=0, verbose=0, mode='min', baseline=None, restore_best_weights=True))
 		# clbcks.append(PrintModelCallback())
- 		history = model.fit(x_train_spec, y_train, validation_data=(x_val_spec, y_val), epochs=epochs, batch_size=batch_size, callbacks=clbcks)
+		history = model.fit(x_train_spec, y_train, validation_data=(x_val_spec, y_val), epochs=epochs, batch_size=batch_size, callbacks=clbcks)
 		stand_d = np.std(history.history['val_loss'])
 		mean = np.mean(history.history['val_loss'])
 		print("Learning Curve Standard Deviation: "+str(stand_d))
