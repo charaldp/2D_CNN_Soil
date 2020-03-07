@@ -6,7 +6,7 @@ if tensorflow_ver[0] == '2':
 	from tensorflow.keras.layers import *
 	from tensorflow.keras.activations import *
 	from tensorflow.keras.initializers import *
-	from tensorflow.keras.models import Sequential,Model,Input,load_model
+	from tensorflow.keras.models import Sequential,Model,load_model
 	from tensorflow.keras.optimizers import Adam,Adamax
 	from tensorflow.keras.callbacks import Callback, LambdaCallback, ReduceLROnPlateau, EarlyStopping, ModelCheckpoint
 elif tensorflow_ver[0] == '1':
@@ -485,20 +485,30 @@ def customModelMulti( fold_path, output_properties, x_in_train, y_train, x_in_va
 	# extractSpectrogram(x_in_train, fold_path, input_mode, v_to_h_ratio, input_shape)
 
 	# Normalize output properties at range [-1, 1]
-	y_train_model = []
-	y_test_model = []
-	y_val_model = []
-	i = 0
-	for prop, col in output_properties.items():
-		y_train_model.append([x for x in outputAtNormalRange(np.array(y_train[i]), prop, output_mode)])
-		y_test_model.append([x for x in outputAtNormalRange(np.array(y_test[i]), prop, output_mode)])
-		y_val_model.append([x for x in outputAtNormalRange(np.array(y_val[i]), prop, output_mode)])
-		i += 1
-		# print(y_train)
-
-	# y_train_model = y_train_model.transpose()
-	# y_test_model = y_test_model.transpose()
-	# y_val_model = y_val_model.transpose()
+	if tensorflow.__version__[0] == '1':
+		y_train_model = []
+		y_test_model = []
+		y_val_model = []
+		i = 0
+		for prop, col in output_properties.items():
+			y_train_model.append([x for x in outputAtNormalRange(np.array(y_train[i]), prop, output_mode)])
+			y_test_model.append([x for x in outputAtNormalRange(np.array(y_test[i]), prop, output_mode)])
+			y_val_model.append([x for x in outputAtNormalRange(np.array(y_val[i]), prop, output_mode)])
+			i += 1
+			# print(y_train)
+	else:
+		y_train_model = np.zeros(shape=(prop_count, instances_train))
+		y_test_model = np.zeros(shape=(prop_count, instances_test))
+		y_val_model = np.zeros(shape=(prop_count, instances_val))
+		i = 0
+		for prop, col in output_properties.items():
+			y_train_model[i, :] = [x for x in outputAtNormalRange(np.array(y_train[i]), prop, output_mode)]
+			y_test_model[i, :] = [x for x in outputAtNormalRange(np.array(y_test[i]), prop, output_mode)]
+			y_val_model[i, :] = [x for x in outputAtNormalRange(np.array(y_val[i]), prop, output_mode)]
+			i += 1
+		# y_train_model = y_train_model.transpose()
+		# y_test_model = y_test_model.transpose()
+		# y_val_model = y_val_model.transpose()
 	# print(y_train_model)
 	# print(y_val_model)
 	clbcks = []
