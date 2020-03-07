@@ -243,6 +243,16 @@ def outputFromNormalRange(y_norm, prop, mode):
 		y = outputFromNormalRange((y_norm - 0.5) * 2, prop, 'statistic_minus_1_1')
 	return y
 
+def outputAtNormalRangeMulti(y, output_properties, mode):
+	# y is a list each properties' list
+	i = 0
+	for out_name, out_col in output_properties.items():
+		y[i] = outputFromNormalRange(np.array(y[i]), out_name, mode)
+		i+=1
+	return y
+		
+
+
 def applySpectraSavgol( x_in_spectra, window_length, polyorder, deriv ):
 	spectra_out = signal.savgol_filter(x, window_length, polyorder, deriv)
 	return spectra_out
@@ -485,27 +495,31 @@ def customModelMulti( fold_path, output_properties, x_in_train, y_train, x_in_va
 	# extractSpectrogram(x_in_train, fold_path, input_mode, v_to_h_ratio, input_shape)
 
 	# Normalize output properties at range [-1, 1]
-	if tensorflow.__version__[0] == '1':
-		y_train_model = []
-		y_test_model = []
-		y_val_model = []
-		i = 0
-		for prop, col in output_properties.items():
-			y_train_model.append([x for x in outputAtNormalRange(np.array(y_train[i]), prop, output_mode)])
-			y_test_model.append([x for x in outputAtNormalRange(np.array(y_test[i]), prop, output_mode)])
-			y_val_model.append([x for x in outputAtNormalRange(np.array(y_val[i]), prop, output_mode)])
-			i += 1
-			# print(y_train)
-	else:
-		y_train_model = np.zeros(shape=(prop_count, instances_train))
-		y_test_model = np.zeros(shape=(prop_count, instances_test))
-		y_val_model = np.zeros(shape=(prop_count, instances_val))
-		i = 0
-		for prop, col in output_properties.items():
-			y_train_model[i, :] = [x for x in outputAtNormalRange(np.array(y_train[i]), prop, output_mode)]
-			y_test_model[i, :] = [x for x in outputAtNormalRange(np.array(y_test[i]), prop, output_mode)]
-			y_val_model[i, :] = [x for x in outputAtNormalRange(np.array(y_val[i]), prop, output_mode)]
-			i += 1
+	y_train_model = outputAtNormalRangeMulti(y_train, output_properties, output_mode)
+	y_test_model = outputAtNormalRangeMulti(y_test, output_properties, output_mode)
+	y_val_model = outputAtNormalRangeMulti(y_val, output_properties, output_mode)
+	print(y_train_model)
+	# if tensorflow.__version__[0] == '1':
+	# 	y_train_model = []
+	# 	y_test_model = []
+	# 	y_val_model = []
+	# 	i = 0
+	# 	for prop, col in output_properties.items():
+	# 		y_train_model.append([x for x in outputAtNormalRange(np.array(y_train[i]), prop, output_mode)])
+	# 		y_test_model.append([x for x in outputAtNormalRange(np.array(y_test[i]), prop, output_mode)])
+	# 		y_val_model.append([x for x in outputAtNormalRange(np.array(y_val[i]), prop, output_mode)])
+	# 		i += 1
+	# 		# print(y_train)
+	# else:
+	# 	y_train_model = np.zeros(shape=(prop_count, instances_train))
+	# 	y_test_model = np.zeros(shape=(prop_count, instances_test))
+	# 	y_val_model = np.zeros(shape=(prop_count, instances_val))
+	# 	i = 0
+	# 	for prop, col in output_properties.items():
+	# 		y_train_model[i, :] = [x for x in outputAtNormalRange(np.array(y_train[i]), prop, output_mode)]
+	# 		y_test_model[i, :] = [x for x in outputAtNormalRange(np.array(y_test[i]), prop, output_mode)]
+	# 		y_val_model[i, :] = [x for x in outputAtNormalRange(np.array(y_val[i]), prop, output_mode)]
+	# 		i += 1
 		# y_train_model = y_train_model.transpose()
 		# y_test_model = y_test_model.transpose()
 		# y_val_model = y_val_model.transpose()
