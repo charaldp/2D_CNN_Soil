@@ -12,19 +12,14 @@ import pandas as pnd
 import modelCNN2dSpectr
 from datetime import datetime
 arg_it = 1
-# global model_type
 model_type = str(sys.argv[arg_it])
 arg_it+=1
-# global epochs
 epochs = int(sys.argv[arg_it])
 arg_it+=1
-# global batch_size
 batch_size = int(sys.argv[arg_it])
 arg_it+=1
-# global undersampling_factor
 undersampling_factor = float(sys.argv[arg_it])
 arg_it+=1
-# global v_to_h_ratio
 v_to_h_ratio = float(sys.argv[arg_it])
 arg_it+=1
 print("Epochs: "+str(epochs))
@@ -58,7 +53,7 @@ print(output_properties)
 prop_count = len(output_properties.items())
 
 print("Loading Data")
-data_parser = sp.SpectraParser("../dataset/Mineral_Absorbances.json")
+data_parser = sp.SpectraParser("../dataset/Grassland_Absorbances.json")
 data_parser.output_file = path_to_properties
 print("Done")
 # Output Paths
@@ -148,8 +143,8 @@ if model_type == "multi" or model_type == "single_multi":
         y = []
         for out_name, out_col in output_properties.items():
             y.append(data_parser.y(out_col))
-        print(len(y))
-        print(len(x))
+        # print(len(y))
+        # print(len(x))
         if undersampling_factor != 1:
             indices = []
             i = 0

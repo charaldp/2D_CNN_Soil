@@ -116,13 +116,13 @@ def lucas_soil_properties():
 			'pH': 1.35,
 			'N': 3.76
 	 	},
-	 	'skewness': {
-		 	'OC': 3.67,
-			'CEC': 4.24,
-			'Clay': 0.91,
-			'Sand': 0.19,
-			'pH': 0.08,# Minus !!!!
-			'N': 3.76
+	 	'loss_weights': {
+	 		'OC': 37207.9209,
+			'CEC': 3069714.0458,
+			'Clay': 27.2810,
+			'Sand': 472146.0592,
+			'pH': 18523.8618,
+			'N': 1.3730
 	 	}
  	}
 
@@ -246,8 +246,11 @@ def outputFromNormalRange(y_norm, prop, mode):
 def outputAtNormalRangeMulti(y, output_properties, mode):
 	# y is a list each properties' list
 	i = 0
+	y_out = []
 	for out_name, out_col in output_properties.items():
-		y[i] = outputFromNormalRange(np.array(y[i]), out_name, mode)
+		print('before',y[i])
+		y_out.append(outputFromNormalRange(np.array(y[i]), out_name, mode))
+		print('after',y_out[i])
 		i+=1
 	return y
 		
@@ -321,7 +324,7 @@ def createModelSingle(input_shape, printDetails):
 		print(model.summary())
 	return model
 
-def createModelMulti(input_shape, prop_count, printDetails):
+def createModelMulti(input_shape, prop_count, printDetails, loss_weights=[]):
 	# global prop_count
 	input_shape_1 = tuple([input_shape[0], input_shape[1], 1])
 	input_shape_2 = tuple([input_shape_1[0] / 2, input_shape_1[1] / 2, 1])
@@ -329,7 +332,7 @@ def createModelMulti(input_shape, prop_count, printDetails):
 	input_shape_4 = tuple([input_shape_3[0] / 2, input_shape_3[1] / 2, 1])
 	kernel_initializer = 'random_uniform'
 	bias_initializer = 'zeros'
-	optimizer = Adam(lr=0.0005)
+	optimizer = Adam(lr=0.01)
 	# TODO: Multi input?
 	input_layer = Input(shape=input_shape_1)
 	# Layer 1
@@ -351,16 +354,16 @@ def createModelMulti(input_shape, prop_count, printDetails):
 		mult_layer = Flatten()(mult_layer)
 		# mult_layer = Flatten(input_shape=cnn_common.output_shape[1:])(mult_layer)
 		# model.add(Dropout(0.5))
-		mult_layer = Dense(100, kernel_initializer=kernel_initializer, bias_initializer=bias_initializer)(mult_layer)
+		mult_layer = Dense(64, kernel_initializer=kernel_initializer, bias_initializer=bias_initializer)(mult_layer)
 		mult_layer = BatchNormalization()(mult_layer)
-		# model.add(Dense(10))
 		mult_layer = ReLU()(mult_layer)
 		# Layer 9
 		mult_layer = Dense(1, activation='linear', kernel_initializer=kernel_initializer, bias_initializer=bias_initializer)(mult_layer)
 		outputs.append(mult_layer)
 
+	
 	model = Model(inputs=input_layer, outputs=outputs)
-	model.compile(optimizer=optimizer, loss='mean_squared_error', metrics=['mse'])
+	model.compile(optimizer=optimizer, loss='mean_squared_error', metrics=['mse'],loss_weights=loss_weights)
 	if printDetails:
 		print(model.summary())
 	return model 
@@ -487,8 +490,11 @@ def customModelMulti( fold_path, output_properties, x_in_train, y_train, x_in_va
 	x_train_spec = spectraToSpectrogram(x_in_train, input_mode, v_to_h_ratio, input_shape)
 	x_val_spec = spectraToSpectrogram(x_in_val, input_mode, v_to_h_ratio, input_shape)
 	x_test_spec = spectraToSpectrogram(x_in_test, input_mode, v_to_h_ratio, input_shape)
-
-	model = createModelMulti(input_shape, prop_count, True)
+	soil_props = lucas_soil_properties()
+	loss_weights = []
+	for out_name, out_col in output_properties.items():
+		loss_weights.append(1)# / soil_props['loss_weights'][out_name])
+	model = createModelMulti(input_shape, prop_count, True, loss_weights)
 	# x_train_spec = spectraToSpectrogramMulti(x_in_train, input_mode)
 	# x_val_spec = spectraToSpectrogramMulti(x_in_val, input_mode)
 	# x_test_spec = spectraToSpectrogramMulti(x_in_test, input_mode)
@@ -496,45 +502,30 @@ def customModelMulti( fold_path, output_properties, x_in_train, y_train, x_in_va
 
 	# Normalize output properties at range [-1, 1]
 	y_train_model = outputAtNormalRangeMulti(y_train, output_properties, output_mode)
+	# y_train_model = y_train
 	y_test_model = outputAtNormalRangeMulti(y_test, output_properties, output_mode)
+	# y_test_model = y_test
 	y_val_model = outputAtNormalRangeMulti(y_val, output_properties, output_mode)
-	print(y_train_model)
-	# if tensorflow.__version__[0] == '1':
-	# 	y_train_model = []
-	# 	y_test_model = []
-	# 	y_val_model = []
-	# 	i = 0
-	# 	for prop, col in output_properties.items():
-	# 		y_train_model.append([x for x in outputAtNormalRange(np.array(y_train[i]), prop, output_mode)])
-	# 		y_test_model.append([x for x in outputAtNormalRange(np.array(y_test[i]), prop, output_mode)])
-	# 		y_val_model.append([x for x in outputAtNormalRange(np.array(y_val[i]), prop, output_mode)])
-	# 		i += 1
-	# 		# print(y_train)
-	# else:
-	# 	y_train_model = np.zeros(shape=(prop_count, instances_train))
-	# 	y_test_model = np.zeros(shape=(prop_count, instances_test))
-	# 	y_val_model = np.zeros(shape=(prop_count, instances_val))
-	# 	i = 0
-	# 	for prop, col in output_properties.items():
-	# 		y_train_model[i, :] = [x for x in outputAtNormalRange(np.array(y_train[i]), prop, output_mode)]
-	# 		y_test_model[i, :] = [x for x in outputAtNormalRange(np.array(y_test[i]), prop, output_mode)]
-	# 		y_val_model[i, :] = [x for x in outputAtNormalRange(np.array(y_val[i]), prop, output_mode)]
-	# 		i += 1
-		# y_train_model = y_train_model.transpose()
-		# y_test_model = y_test_model.transpose()
-		# y_val_model = y_val_model.transpose()
+	# y_val_model = y_val
 	# print(y_train_model)
 	# print(y_val_model)
-	clbcks = []
-	clbcks.append(TrainingResetCallback())
-	# clbcks.append(ReduceLROnPlateau(min_lr=0.0001))
-	clbcks.append(ModelCheckpoint(fold_path+'/multi_weights.hdf5', monitor='val_loss', verbose=0, save_best_only=True, save_weights_only=True, mode='min', period=1))
-	history = model.fit(x_train_spec, y_train_model, epochs=epochs, batch_size=batch_size,
-                               validation_data=(x_val_spec, y_val_model),callbacks=clbcks)
 	print(x_train_spec.shape)
 	print(np.amin(x_train_spec))
 	print(np.amax(x_train_spec))
-	return insd
+	print(np.amin(y_train_model[0]))
+	print(np.amax(y_train_model[0]))
+	print(np.amin(y_train_model[1]))
+	print(np.amax(y_train_model[1]))
+	print(np.amin(y_train_model[2]))
+	print(np.amax(y_train_model[2]))
+	
+	clbcks = []
+	clbcks.append(TrainingResetCallback())
+	# clbcks.append(ReduceLROnPlateau(min_lr=0.0001))
+	# clbcks.append(ModelCheckpoint(fold_path+'/multi_weights.hdf5', monitor='val_loss', verbose=0, save_best_only=True, save_weights_only=True, mode='min', period=1))
+	history = model.fit(x_train_spec, y_train_model, epochs=epochs, batch_size=batch_size,
+                               validation_data=(x_val_spec, y_val_model),callbacks=clbcks)
+	return 4
 
 def createOuputData(self, ind):
 	y = np.zeros(shape=(len(self.outputs), len(ind)))
