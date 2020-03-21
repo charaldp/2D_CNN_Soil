@@ -10,6 +10,7 @@ import os
 import numpy as np
 import pandas as pnd
 import modelCNN2dSpectr
+from modelCNN2dSpectr import OutputStandarizer
 from datetime import datetime
 arg_it = 1
 model_type = str(sys.argv[arg_it])
@@ -53,7 +54,7 @@ print(output_properties)
 prop_count = len(output_properties.items())
 
 print("Loading Data")
-data_parser = sp.SpectraParser("../dataset/Grassland_Absorbances.json")
+data_parser = sp.SpectraParser("../dataset/Mineral_Absorbances.json")
 data_parser.output_file = path_to_properties
 print("Done")
 # Output Paths
@@ -76,6 +77,7 @@ if model_type == "single" or model_type == "single_multi":
             data_parser.input_spectra = os.path.join(folder_with_spectra, pre_process)
             x = data_parser.x()
             y = data_parser.y(out_col)
+            standarizer = modelCNN2dSpectr.OutputStandarizer({out_name: out_col}, [y])
             print(len(x))
             # exit()
             if undersampling_factor != 1:
@@ -111,7 +113,7 @@ if model_type == "single" or model_type == "single_multi":
                 path_fold = os.path.join(preproc_datetime, str(fold))
                 if not os.path.exists(path_fold):
                     os.mkdir(path_fold)
-                rmse_train, rmse_val, rmse_test, determ_train, determ_val, determ_test, rpiq_train, rpiq_val, rpiq_test, y_pred = modelCNN2dSpectr.customModelSingle(path_fold, out_name, x_trn, y_trn, x_val, y_val, x_tst, y_tst, v_to_h_ratio, epochs, batch_size)
+                rmse_train, rmse_val, rmse_test, determ_train, determ_val, determ_test, rpiq_train, rpiq_val, rpiq_test, y_pred = modelCNN2dSpectr.customModelSingle(path_fold, out_name, x_trn, y_trn, x_val, y_val, x_tst, y_tst, v_to_h_ratio, epochs, batch_size, standarizer)
                 rmse_train_ar.append(rmse_train)
                 rmse_val_ar.append(rmse_val)
                 rmse_test_ar.append(rmse_test)
@@ -142,7 +144,10 @@ if model_type == "multi" or model_type == "single_multi":
         x = data_parser.x()
         y = []
         for out_name, out_col in output_properties.items():
+            print(out_name)
             y.append(data_parser.y(out_col))
+        standarizer = modelCNN2dSpectr.OutputStandarizer(output_properties, y)
+        print(standarizer.statistics)
         # print(len(y))
         # print(len(x))
         if undersampling_factor != 1:
@@ -172,4 +177,4 @@ if model_type == "multi" or model_type == "single_multi":
             path_fold = os.path.join(preproc_datetime, str(fold))
             if not os.path.exists(path_fold):
                 os.mkdir(path_fold)
-            modelCNN2dSpectr.customModelMulti( path_fold, output_properties, x_trn, y_trn, x_val, y_val, x_tst, y_tst, v_to_h_ratio, epochs, batch_size )
+            modelCNN2dSpectr.customModelMulti( path_fold, output_properties, x_trn, y_trn, x_val, y_val, x_tst, y_tst, v_to_h_ratio, epochs, batch_size, standarizer )

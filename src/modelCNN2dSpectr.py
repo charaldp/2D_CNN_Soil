@@ -31,6 +31,25 @@ from time import time
 
 
 
+class OutputStandarizer(object):
+	statistics={}
+	method=''
+	def __init__(self, properties, output, method = 'statistic_minus_1_1'):
+		self.statistics = {}
+		''' 'linear_minus_1_1', 'statistic_minus_1_1', 'linear_zero_one', 'statistic_zero_one' '''
+		self.method = method
+		j = 0
+		for prop_name, col in properties.items():
+			self.statistics[prop_name] = {}
+			self.statistics[prop_name]['min'] = np.min(output[j])
+			self.statistics[prop_name]['max'] = np.max(output[j])
+			self.statistics[prop_name]['mean'] = np.mean(output[j])
+			self.statistics[prop_name]['std'] = np.std(output[j])
+			j += 1
+
+	def standarize(self, output):
+		return 4
+
 class TrainingResetCallback(Callback):
 	def __init__(self):
 		Callback.__init__(self)
@@ -116,14 +135,6 @@ def lucas_soil_properties():
 			'pH': 1.35,
 			'N': 3.76
 	 	},
-	 	'loss_weights': {
-	 		'OC': 37207.9209,
-			'CEC': 3069714.0458,
-			'Clay': 27.2810,
-			'Sand': 472146.0592,
-			'pH': 18523.8618,
-			'N': 1.3730
-	 	}
  	}
 
 def computeErrors(valy, pred, stand=False):
@@ -219,42 +230,46 @@ def extractSpectrogram(x_in_spectra, path, mode, v_to_h_ratio, input_shape ):
 		plt.close()
 		i += 15
 
-def outputAtNormalRange(y, prop, mode):
-	props = lucas_soil_properties()
+def outputAtNormalRange(y, prop, mode, standarizer):
 	if mode == 'linear_minus_1_1':
-		y_norm = 2 * (y - props['min'][prop]) / (props['max'][prop] - props['min'][prop]) - 1
+		y_norm = 2 * (y - standarizer.statistics[prop]['min']) / (standarizer.statistics[prop]['max'] - standarizer.statistics[prop]['min']) - 1
 	elif mode == 'statistic_minus_1_1':
-		y_norm = (y - props['mean'][prop]) / (props['st.dev.'][prop])
+		y_norm = (y - standarizer.statistics[prop]['mean']) / (standarizer.statistics[prop]['std'])
 	elif mode == 'linear_zero_one':
 		y_norm = outputAtNormalRange(y, prop, 'linear_minus_1_1') / 2 + 0.5
 	elif mode == 'statistic_zero_one':
 		y_norm = outputAtNormalRange(y, prop, 'statistic_minus_1_1') / 2 + 0.5
 	return y_norm
 
-def outputFromNormalRange(y_norm, prop, mode):
+def outputFromNormalRange(y_norm, prop, mode, standarizer):
 	props = lucas_soil_properties()
 	if mode == 'linear_minus_1_1':
-		y = (y_norm + 1) * (props['max'][prop] - props['min'][prop]) / 2 + props['min'][prop]
+		y = (y_norm + 1) * (standarizer.statistics[prop]['max'] - standarizer.statistics[prop]['min']) / 2 + standarizer.statistics[prop]['min']
 	elif mode == 'statistic_minus_1_1':
-		y = y_norm * props['st.dev.'][prop] + props['mean'][prop]
+		y = y_norm * standarizer.statistics[prop]['std'] + standarizer.statistics[prop]['mean']
 	elif mode == 'linear_zero_one':
 		y = outputFromNormalRange((y_norm - 0.5) * 2, prop, 'linear_minus_1_1')
 	elif mode == 'statistic_zero_one':
 		y = outputFromNormalRange((y_norm - 0.5) * 2, prop, 'statistic_minus_1_1')
 	return y
 
-def outputAtNormalRangeMulti(y, output_properties, mode):
+def outputAtNormalRangeMulti(y, output_properties, mode, standarizer):
 	# y is a list each properties' list
 	i = 0
 	y_out = []
 	for out_name, out_col in output_properties.items():
-		print('before',y[i])
-		y_out.append(outputFromNormalRange(np.array(y[i]), out_name, mode))
-		print('after',y_out[i])
+		y_out.append(outputAtNormalRange(np.array(y[i]), out_name, mode, standarizer))
 		i+=1
-	return y
+	return y_out
 		
-
+def outputFromNormalRangeMulti(y, output_properties, mode, standarizer):
+	# y is a list each properties' list
+	i = 0
+	y_out = []
+	for out_name, out_col in output_properties.items():
+		y_out.append(outputFromNormalRange(np.array(y[i]), out_name, mode, standarizer))
+		i+=1
+	return y_out
 
 def applySpectraSavgol( x_in_spectra, window_length, polyorder, deriv ):
 	spectra_out = signal.savgol_filter(x, window_length, polyorder, deriv)
@@ -324,7 +339,7 @@ def createModelSingle(input_shape, printDetails):
 		print(model.summary())
 	return model
 
-def createModelMulti(input_shape, prop_count, printDetails, loss_weights=[]):
+def createModelMulti(input_shape, output_properties, printDetails, loss_weights=[]):
 	# global prop_count
 	input_shape_1 = tuple([input_shape[0], input_shape[1], 1])
 	input_shape_2 = tuple([input_shape_1[0] / 2, input_shape_1[1] / 2, 1])
@@ -332,7 +347,7 @@ def createModelMulti(input_shape, prop_count, printDetails, loss_weights=[]):
 	input_shape_4 = tuple([input_shape_3[0] / 2, input_shape_3[1] / 2, 1])
 	kernel_initializer = 'random_uniform'
 	bias_initializer = 'zeros'
-	optimizer = Adam(lr=0.01)
+	optimizer = Adam(lr=0.0001)
 	# TODO: Multi input?
 	input_layer = Input(shape=input_shape_1)
 	# Layer 1
@@ -347,7 +362,7 @@ def createModelMulti(input_shape, prop_count, printDetails, loss_weights=[]):
 	cnn_common = convUnit(cnn_common, 512, 3, False)
 	# Split to multi
 	outputs = []
-	for i in range(prop_count):
+	for out_name, out_col in output_properties.items():
 		# Layer 7
 		mult_layer = convUnit(cnn_common, 64, 1, False)
 		# Layer 8
@@ -358,17 +373,16 @@ def createModelMulti(input_shape, prop_count, printDetails, loss_weights=[]):
 		mult_layer = BatchNormalization()(mult_layer)
 		mult_layer = ReLU()(mult_layer)
 		# Layer 9
-		mult_layer = Dense(1, activation='linear', kernel_initializer=kernel_initializer, bias_initializer=bias_initializer)(mult_layer)
+		mult_layer = Dense(1, activation='linear', name=out_name, kernel_initializer=kernel_initializer, bias_initializer=bias_initializer)(mult_layer)
 		outputs.append(mult_layer)
 
-	
 	model = Model(inputs=input_layer, outputs=outputs)
-	model.compile(optimizer=optimizer, loss='mean_squared_error', metrics=['mse'],loss_weights=loss_weights)
+	model.compile(optimizer=optimizer, loss='mean_squared_error', metrics=['mse'])
 	if printDetails:
 		print(model.summary())
 	return model 
 
-def customModelSingle( fold_path, prop, x_in_train, y_train, x_in_val, y_val, x_in_test, y_test, v_to_h_ratio, epochs, batch_size ):
+def customModelSingle( fold_path, prop, x_in_train, y_train, x_in_val, y_val, x_in_test, y_test, v_to_h_ratio, epochs, batch_size, standarizer ):
 	output_mode = 'statistic_minus_1_1'
 	input_mode = 'minus_1_1'
 
@@ -379,9 +393,9 @@ def customModelSingle( fold_path, prop, x_in_train, y_train, x_in_val, y_val, x_
 	# extractSpectrogram(x_in_train, fold_path, input_mode, v_to_h_ratio, input_shape)
 
 	# Normalize output properties at range [-1, 1]
-	y_train = outputAtNormalRange(np.array(y_train), prop, output_mode)
-	y_test = outputAtNormalRange(np.array(y_test), prop, output_mode)
-	y_val = outputAtNormalRange(np.array(y_val), prop, output_mode)
+	y_train = outputAtNormalRange(np.array(y_train), prop, output_mode, standarizer)
+	y_test = outputAtNormalRange(np.array(y_test), prop, output_mode, standarizer)
+	y_val = outputAtNormalRange(np.array(y_val), prop, output_mode, standarizer)
 
 	print(x_train_spec.shape)
 	print(np.amin(x_train_spec))
@@ -436,12 +450,12 @@ def customModelSingle( fold_path, prop, x_in_train, y_train, x_in_val, y_val, x_
 	y_test = np.array(y_test)
 
 	# Return to initial prop range
-	y_train = outputFromNormalRange(y_train, prop, output_mode)
-	y_test = outputFromNormalRange(y_test, prop, output_mode)
-	y_val = outputFromNormalRange(y_val, prop, output_mode)
-	y_train_pred = outputFromNormalRange(y_train_pred, prop, output_mode)
-	y_val_pred = outputFromNormalRange(y_val_pred, prop, output_mode)
-	y_test_pred = outputFromNormalRange(y_test_pred, prop, output_mode)
+	y_train = outputFromNormalRange(y_train, prop, output_mode, standarizer)
+	y_test = outputFromNormalRange(y_test, prop, output_mode, standarizer)
+	y_val = outputFromNormalRange(y_val, prop, output_mode, standarizer)
+	y_train_pred = outputFromNormalRange(y_train_pred, prop, output_mode, standarizer)
+	y_val_pred = outputFromNormalRange(y_val_pred, prop, output_mode, standarizer)
+	y_test_pred = outputFromNormalRange(y_test_pred, prop, output_mode, standarizer)
 
 	y_train_pred = np.array(y_train_pred.reshape(y_train_pred.shape[0]).tolist())
 	y_val_pred = np.array(y_val_pred.reshape(y_val_pred.shape[0]).tolist())
@@ -475,7 +489,7 @@ def customModelSingle( fold_path, prop, x_in_train, y_train, x_in_val, y_val, x_
 	# oc, Clay
 	# savgSl_filter feflectances
 
-def customModelMulti( fold_path, output_properties, x_in_train, y_train, x_in_val, y_val, x_in_test, y_test, v_to_h_ratio, epochs, batch_size ):
+def customModelMulti( fold_path, output_properties, x_in_train, y_train, x_in_val, y_val, x_in_test, y_test, v_to_h_ratio, epochs, batch_size, standarizer ):
 	# multi
 	print(len(y_train))
 	print(output_properties.items())
@@ -494,38 +508,68 @@ def customModelMulti( fold_path, output_properties, x_in_train, y_train, x_in_va
 	loss_weights = []
 	for out_name, out_col in output_properties.items():
 		loss_weights.append(1)# / soil_props['loss_weights'][out_name])
-	model = createModelMulti(input_shape, prop_count, True, loss_weights)
+	model = createModelMulti(input_shape, output_properties, True, loss_weights)
 	# x_train_spec = spectraToSpectrogramMulti(x_in_train, input_mode)
 	# x_val_spec = spectraToSpectrogramMulti(x_in_val, input_mode)
 	# x_test_spec = spectraToSpectrogramMulti(x_in_test, input_mode)
 	# extractSpectrogram(x_in_train, fold_path, input_mode, v_to_h_ratio, input_shape)
 
 	# Normalize output properties at range [-1, 1]
-	y_train_model = outputAtNormalRangeMulti(y_train, output_properties, output_mode)
+	y_train_model = outputAtNormalRangeMulti(y_train, output_properties, output_mode, standarizer)
 	# y_train_model = y_train
-	y_test_model = outputAtNormalRangeMulti(y_test, output_properties, output_mode)
+	y_test_model = outputAtNormalRangeMulti(y_test, output_properties, output_mode, standarizer)
 	# y_test_model = y_test
-	y_val_model = outputAtNormalRangeMulti(y_val, output_properties, output_mode)
+	y_val_model = outputAtNormalRangeMulti(y_val, output_properties, output_mode, standarizer)
 	# y_val_model = y_val
 	# print(y_train_model)
 	# print(y_val_model)
 	print(x_train_spec.shape)
-	print(np.amin(x_train_spec))
-	print(np.amax(x_train_spec))
-	print(np.amin(y_train_model[0]))
-	print(np.amax(y_train_model[0]))
-	print(np.amin(y_train_model[1]))
-	print(np.amax(y_train_model[1]))
-	print(np.amin(y_train_model[2]))
-	print(np.amax(y_train_model[2]))
+	# print(np.amin(x_train_spec))
+	# print(np.amax(x_train_spec))
+	# print(np.amin(y_train_model[0]))
+	# print(np.amax(y_train_model[0]))
+	# print(np.amin(y_train_model[1]))
+	# print(np.amax(y_train_model[1]))
+	# print(np.amin(y_train_model[2]))
+	# print(np.amax(y_train_model[2]))
 	
 	clbcks = []
 	clbcks.append(TrainingResetCallback())
 	# clbcks.append(ReduceLROnPlateau(min_lr=0.0001))
-	# clbcks.append(ModelCheckpoint(fold_path+'/multi_weights.hdf5', monitor='val_loss', verbose=0, save_best_only=True, save_weights_only=True, mode='min', period=1))
-	history = model.fit(x_train_spec, y_train_model, epochs=epochs, batch_size=batch_size,
-                               validation_data=(x_val_spec, y_val_model),callbacks=clbcks)
-	return 4
+	clbcks.append(ModelCheckpoint(fold_path+'/multi_weights.hdf5', monitor='val_loss', verbose=0, save_best_only=True, save_weights_only=True, mode='min', period=1))
+	history = model.fit(x_train_spec, y_train_model, epochs=epochs, batch_size=batch_size, validation_data=(x_val_spec, y_val_model),callbacks=clbcks)
+	
+	y_train_pred = model.predict(x_train_spec)
+	y_test_pred = model.predict(x_test_spec)
+	y_val_pred = model.predict(x_val_spec)
+
+	y_train_pred = outputFromNormalRangeMulti(y_train_pred, output_properties, output_mode, standarizer)
+	y_test_pred = outputFromNormalRangeMulti(y_test_pred, output_properties, output_mode, standarizer)
+	y_val_pred = outputFromNormalRangeMulti(y_val_pred, output_properties, output_mode, standarizer)
+
+	y_train_model = outputFromNormalRangeMulti(y_train_model, output_properties, output_mode, standarizer)
+	y_test_model = outputFromNormalRangeMulti(y_test_model, output_properties, output_mode, standarizer)
+	y_val_model = outputFromNormalRangeMulti(y_val_model, output_properties, output_mode, standarizer)
+
+	metrics = {}
+	i = 0
+	for out_name, out_col in output_properties.items():
+		metrics[out_name] = {
+			'train_rmse': 0, 'train_determ': 0, 'train_rpiq': 0,
+			'test_rmse': 0, 'test_determ': 0, 'test_rpiq': 0,
+			'val_rmse': 0, 'val_determ': 0, 'val_rpiq': 0
+		}
+		metrics[out_name]['train_rmse'], metrics[out_name]['train_determ'], metrics[out_name]['train_rpiq'] = computeErrors(y_train_model[i], y_train_pred[i])
+		metrics[out_name]['test_rmse'], metrics[out_name]['test_determ'], metrics[out_name]['test_rpiq'] = computeErrors(y_test_model[i], y_test_pred[i])
+		metrics[out_name]['val_rmse'], metrics[out_name]['val_determ'], metrics[out_name]['val_rpiq'] = computeErrors(y_val_model[i], y_val_pred[i])
+		i += 1
+	print(metrics)
+	metrics = pnd.DataFrame(metrics)
+	metrics.to_csv(fold_path+'/metrics.csv')
+
+	# predictionss = pnd.DataFrame({'y_test': y_test, 'y_test_pred': y_test_pred})
+	# preds.to_csv(fold_path+'/'+prop+'.csv')
+	return metrics
 
 def createOuputData(self, ind):
 	y = np.zeros(shape=(len(self.outputs), len(ind)))
@@ -549,3 +593,7 @@ def getMultTrainData(self, f):
 	else:
 	    trainY = np.array([self.out[i] for i in fold[0]])
 	return trainX, trainY
+
+	# psych.it standarizer
+	# learing anomalies
+	# extract prediction train, val, test
