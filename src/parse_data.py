@@ -67,13 +67,18 @@ if not os.path.exists(path_datetime):
     os.mkdir(path_datetime)
 
 if model_type == "single" or model_type == "single_multi":
-    for out_name, out_col in output_properties.items(): # iteritems for python2
-        print("Prop "+out_name)
-        for pre_process in pre_processing_techniques:
-            preproc_datetime = os.path.join(path_datetime, pre_process[0:len(pre_process) - 4])
-            if not os.path.exists(preproc_datetime):
-                os.mkdir(preproc_datetime)
-            print("Preproc "+pre_process)
+    single_path = os.path.join(path_datetime, 'single_output')
+    if not os.path.exists(single_path):
+        os.mkdir(single_path)
+    for pre_process in pre_processing_techniques:
+        preproc_datetime = os.path.join(single_path, pre_process[0:len(pre_process) - 4])
+        if not os.path.exists(preproc_datetime):
+            os.mkdir(preproc_datetime)
+        print("Preproc "+pre_process)
+        metrics = {}
+        for out_name, out_col in output_properties.items(): # iteritems for python2
+            print("Prop "+out_name)
+        
             data_parser.input_spectra = os.path.join(folder_with_spectra, pre_process)
             x = data_parser.x()
             y = data_parser.y(out_col)
@@ -92,15 +97,12 @@ if model_type == "single" or model_type == "single_multi":
                 for i in range(len(x)):
                     x_1.append(np.interp(indices, indices_orig, x[i]))
                 x = x_1
-            rmse_train_ar = []
-            rmse_val_ar = []
-            rmse_test_ar = []
-            determ_train_ar = []
-            determ_val_ar = []
-            determ_test_ar = []
-            rpiq_train_ar = []
-            rpiq_val_ar = []
-            rpiq_test_ar = []
+            y_train_actuals = []
+            y_train_preds = []
+            y_test_actuals = []
+            y_test_preds = []
+            y_val_actuals = []
+            y_val_preds = []
             for fold in range(len(data_parser.cal_folds)): # Number of internal folds
                 print("==========| FOLD "+str(fold+1)+", on "+out_name+" |==========")
                 [trn, val] = data_parser.k_fold(fold)
@@ -113,30 +115,41 @@ if model_type == "single" or model_type == "single_multi":
                 path_fold = os.path.join(preproc_datetime, str(fold))
                 if not os.path.exists(path_fold):
                     os.mkdir(path_fold)
-                rmse_train, rmse_val, rmse_test, determ_train, determ_val, determ_test, rpiq_train, rpiq_val, rpiq_test, y_pred = modelCNN2dSpectr.customModelSingle(path_fold, out_name, x_trn, y_trn, x_val, y_val, x_tst, y_tst, v_to_h_ratio, epochs, batch_size, standarizer)
-                rmse_train_ar.append(rmse_train)
-                rmse_val_ar.append(rmse_val)
-                rmse_test_ar.append(rmse_test)
-                determ_train_ar.append(determ_train)
-                determ_val_ar.append(determ_val)
-                determ_test_ar.append(determ_test)
-                rpiq_train_ar.append(rpiq_train)
-                rpiq_val_ar.append(rpiq_val)
-                rpiq_test_ar.append(rpiq_test)
-            metrics = pnd.DataFrame({'rmse_train': np.array(rmse_train_ar),
-                                    'rmse_val': np.array(rmse_val_ar),
-                                    'rmse_test': np.array(rmse_test_ar),
-                                    'determ_train': np.array(determ_train_ar),
-                                    'determ_val': np.array(determ_val_ar),
-                                    'determ_test': np.array(determ_test_ar),
-                                    'rpiq_train': np.array(rpiq_train_ar),
-                                    'rpiq_val': np.array(rpiq_val_ar),
-                                    'rpiq_test': np.array(rpiq_test_ar)})
-            metrics.to_csv(preproc_datetime+'/'+out_name+'_metrics.csv')
+                y_train_model, y_train_pred, y_test_model, y_test_pred, y_val_model, y_val_pred = modelCNN2dSpectr.customModelSingle(path_fold, out_name, x_trn, y_trn, x_val, y_val, x_tst, y_tst, v_to_h_ratio, epochs, batch_size, standarizer)
+                y_train_actuals.extend(y_train_model.flatten().tolist())
+                y_train_preds.extend(y_train_pred.flatten().tolist())
+                y_test_actuals.extend(y_test_model.flatten().tolist())
+                y_test_preds.extend(y_test_pred.flatten().tolist())
+                y_val_actuals.extend(y_val_model.flatten().tolist())
+                y_val_preds.extend(y_val_pred.flatten().tolist())
+            metrics[out_name] = {
+                'train_rmse': 0, 'train_determ': 0, 'train_rpiq': 0,
+                'test_rmse': 0, 'test_determ': 0, 'test_rpiq': 0,
+                'val_rmse': 0, 'val_determ': 0, 'val_rpiq': 0
+            }
+            metrics[out_name]['train_rmse'], metrics[out_name]['train_determ'], metrics[out_name]['train_rpiq'] = modelCNN2dSpectr.computeErrors(y_train_actuals, y_train_preds)
+            metrics[out_name]['test_rmse'], metrics[out_name]['test_determ'], metrics[out_name]['test_rpiq'] = modelCNN2dSpectr.computeErrors(y_test_actuals, y_test_preds)
+            metrics[out_name]['val_rmse'], metrics[out_name]['val_determ'], metrics[out_name]['val_rpiq'] = modelCNN2dSpectr.computeErrors(y_val_actuals, y_val_preds)
+            output_preds = {}
+            output_preds[out_name+'_train_actuals'] = y_train_actuals
+            output_preds[out_name+'_train_preds'] = y_train_preds
+            output_preds[out_name+'_test_actuals'] = y_test_actuals
+            output_preds[out_name+'_test_preds'] = y_test_preds
+            output_preds[out_name+'_val_actuals'] = y_val_actuals
+            output_preds[out_name+'_val_preds'] = y_val_preds
+            output_preds = pnd.DataFrame(output_preds)
+            output_preds.to_csv(preproc_datetime+'/'+out_name+'_predictions.csv')
+        metrics = pnd.DataFrame(metrics)
+        metrics.to_csv(preproc_datetime+'/'+'metrics.csv')
+
+        
 
 if model_type == "multi" or model_type == "single_multi":
+    multi_path = os.path.join(path_datetime, 'multi_output')
+    if not os.path.exists(multi_path):
+        os.mkdir(multi_path)
     for pre_process in pre_processing_techniques:
-        preproc_datetime = os.path.join(path_datetime, pre_process[0:len(pre_process) - 4])
+        preproc_datetime = os.path.join(multi_path, pre_process[0:len(pre_process) - 4])
         if not os.path.exists(preproc_datetime):
             os.mkdir(preproc_datetime)
         print("Preproc "+pre_process)
@@ -162,6 +175,19 @@ if model_type == "multi" or model_type == "single_multi":
             for i in range(len(x)):
                 x_1.append(np.interp(indices, indices_orig, x[i]))
             x = x_1
+        y_train_actuals = []
+        y_train_preds = []
+        y_test_actuals = []
+        y_test_preds = []
+        y_val_actuals = []
+        y_val_preds = []
+        for i in range(len(y)):
+            y_train_actuals.append([])
+            y_train_preds.append([])
+            y_test_actuals.append([])
+            y_test_preds.append([])
+            y_val_actuals.append([])
+            y_val_preds.append([])
         for fold in range(len(data_parser.cal_folds)):
             [trn, val] = data_parser.k_fold(fold)
             x_trn = [x[i] for i in trn]
@@ -177,4 +203,37 @@ if model_type == "multi" or model_type == "single_multi":
             path_fold = os.path.join(preproc_datetime, str(fold))
             if not os.path.exists(path_fold):
                 os.mkdir(path_fold)
-            modelCNN2dSpectr.customModelMulti( path_fold, output_properties, x_trn, y_trn, x_val, y_val, x_tst, y_tst, v_to_h_ratio, epochs, batch_size, standarizer )
+            y_train_model, y_train_pred, y_test_model, y_test_pred, y_val_model, y_val_pred = modelCNN2dSpectr.customModelMulti( path_fold, output_properties, x_trn, y_trn, x_val, y_val, x_tst, y_tst, v_to_h_ratio, epochs, batch_size, standarizer )
+            for i in range(len(y)):
+                y_train_actuals[i].extend(y_train_model[i].flatten().tolist())
+                y_train_preds[i].extend(y_train_pred[i].flatten().tolist())
+                y_test_actuals[i].extend(y_test_model[i].flatten().tolist())
+                y_test_preds[i].extend(y_test_pred[i].flatten().tolist())
+                y_val_actuals[i].extend(y_val_model[i].flatten().tolist())
+                y_val_preds[i].extend(y_val_pred[i].flatten().tolist())
+                # print(y_val_pred[i].flatten().tolist())
+        metrics = {}
+        i = 0
+        output_preds = {}
+        for out_name, out_col in output_properties.items():
+            metrics[out_name] = {
+                'train_rmse': 0, 'train_determ': 0, 'train_rpiq': 0,
+                'test_rmse': 0, 'test_determ': 0, 'test_rpiq': 0,
+                'val_rmse': 0, 'val_determ': 0, 'val_rpiq': 0
+            }
+            metrics[out_name]['train_rmse'], metrics[out_name]['train_determ'], metrics[out_name]['train_rpiq'] = modelCNN2dSpectr.computeErrors(y_train_actuals[i], y_train_preds[i])
+            metrics[out_name]['test_rmse'], metrics[out_name]['test_determ'], metrics[out_name]['test_rpiq'] = modelCNN2dSpectr.computeErrors(y_test_actuals[i], y_test_preds[i])
+            metrics[out_name]['val_rmse'], metrics[out_name]['val_determ'], metrics[out_name]['val_rpiq'] = modelCNN2dSpectr.computeErrors(y_val_actuals[i], y_val_preds[i])
+            output_preds[out_name+'_train_actuals'] = y_train_actuals[i]
+            output_preds[out_name+'_train_preds'] = y_train_preds[i]
+            output_preds[out_name+'_test_actuals'] = y_test_actuals[i]
+            output_preds[out_name+'_test_preds'] = y_test_preds[i]
+            output_preds[out_name+'_val_actuals'] = y_val_actuals[i]
+            output_preds[out_name+'_val_preds'] = y_val_preds[i]
+            i += 1
+        print(metrics)
+        metrics = pnd.DataFrame(metrics)
+        metrics.to_csv(preproc_datetime+'/metrics.csv')
+
+        output_preds = pnd.DataFrame(output_preds)
+        output_preds.to_csv(preproc_datetime+'/predictions.csv')

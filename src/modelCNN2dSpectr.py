@@ -431,14 +431,11 @@ def customModelSingle( fold_path, prop, x_in_train, y_train, x_in_val, y_val, x_
 	plt.grid(linestyle=':')
 	plt.savefig(fold_path+'/'+prop+'model-loss.eps',format='eps',dpi=1000,bbox_inches='tight')
 	plt.close()
-	# y_test_pred = []
-	# for i in range(x_test_spec.shape[0]):
-	# 	y_test_pred.append(model.predict(x_test_spec[i].reshape(1,51,83,1)).reshape(1).tolist())
-	# y_test_pred = np.array(y_test_pred)
+
 	model_weights = fold_path+'/'+prop+'_weights.hdf5'
 	model = createModelSingle(input_shape, printDetails = False)
 	model.load_weights(model_weights)
-	# TODO: restore model...
+
 	y_train_pred = model.predict(x_train_spec)
 	y_val_pred = model.predict(x_val_spec)
 	y_test_pred = model.predict(x_test_spec)
@@ -446,7 +443,7 @@ def customModelSingle( fold_path, prop, x_in_train, y_train, x_in_val, y_val, x_
 	print('rmse_val = '+str(rmse_val))
 	print('determ_val = '+str(determ_val))
 	print('rpiq_val = '+str(rpiq_val))
-	# model.save(fold_path+'/'+prop+'model')
+
 	y_test = np.array(y_test)
 
 	# Return to initial prop range
@@ -485,9 +482,7 @@ def customModelSingle( fold_path, prop, x_in_train, y_train, x_in_val, y_val, x_
 	a = pnd.DataFrame({'y_test': y_test, 'y_test_pred': y_test_pred})
 	a.to_csv(fold_path+'/'+prop+'.csv')
 
-	return rmse_train, rmse_val, rmse_test, determ_train, determ_val, determ_test, rpiq_train, rpiq_val, rpiq_test
-	# oc, Clay
-	# savgSl_filter feflectances
+	return y_train, y_train_pred, y_test, y_test_pred, y_val, y_val_pred
 
 def customModelMulti( fold_path, output_properties, x_in_train, y_train, x_in_val, y_val, x_in_test, y_test, v_to_h_ratio, epochs, batch_size, standarizer ):
 	# multi
@@ -569,31 +564,6 @@ def customModelMulti( fold_path, output_properties, x_in_train, y_train, x_in_va
 
 	# predictionss = pnd.DataFrame({'y_test': y_test, 'y_test_pred': y_test_pred})
 	# preds.to_csv(fold_path+'/'+prop+'.csv')
-	return metrics
+	return y_train_model, y_train_pred, y_test_model, y_test_pred, y_val_model, y_val_pred
 
-def createOuputData(self, ind):
-	y = np.zeros(shape=(len(self.outputs), len(ind)))
-	for i, key in enumerate(self.outputs):
-		y[i, :] = [self.outputs[key][j] for j in ind]
-	return y.transpose()
-
-def getMultTrainData(self, f):
-	print('Calculating Training Fold...')
-	fold = self.sp.k_fold(f)
-
-	trainX = np.zeros(
-		(len(fold[0]), len(self.spectra["Absorbances"][0]), 6))
-	for i, key in enumerate(self.spectra.keys()):
-		print(key)
-		print(len(self.spectra[key][0]))
-		trainX[:, :, i] = np.array([self.spectra[key][j] for j in fold[0]])
-
-	if self.multipleOutput:
-	    trainY = self.createOuputData(fold[0])
-	else:
-	    trainY = np.array([self.out[i] for i in fold[0]])
-	return trainX, trainY
-
-	# psych.it standarizer
 	# learing anomalies
-	# extract prediction train, val, test
