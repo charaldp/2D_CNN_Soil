@@ -76,7 +76,10 @@ if model_type == "single" or model_type == "single_multi":
             os.mkdir(preproc_datetime)
         print("Preproc "+pre_process)
         metrics = {}
-        for out_name, out_col in output_properties.items(): # iteritems for python2
+        train_dataframe = {}
+        test_dataframe = {}
+        val_dataframe = {}
+        for out_name, out_col in output_properties.items():
             print("Prop "+out_name)
         
             data_parser.input_spectra = os.path.join(folder_with_spectra, pre_process)
@@ -130,17 +133,22 @@ if model_type == "single" or model_type == "single_multi":
             metrics[out_name]['train_rmse'], metrics[out_name]['train_determ'], metrics[out_name]['train_rpiq'] = modelCNN2dSpectr.computeErrors(y_train_actuals, y_train_preds)
             metrics[out_name]['test_rmse'], metrics[out_name]['test_determ'], metrics[out_name]['test_rpiq'] = modelCNN2dSpectr.computeErrors(y_test_actuals, y_test_preds)
             metrics[out_name]['val_rmse'], metrics[out_name]['val_determ'], metrics[out_name]['val_rpiq'] = modelCNN2dSpectr.computeErrors(y_val_actuals, y_val_preds)
-            output_preds = {}
-            output_preds[out_name+'_train_actuals'] = y_train_actuals
-            output_preds[out_name+'_train_preds'] = y_train_preds
-            output_preds[out_name+'_test_actuals'] = y_test_actuals
-            output_preds[out_name+'_test_preds'] = y_test_preds
-            output_preds[out_name+'_val_actuals'] = y_val_actuals
-            output_preds[out_name+'_val_preds'] = y_val_preds
-            output_preds = pnd.DataFrame(output_preds)
-            output_preds.to_csv(preproc_datetime+'/'+out_name+'_predictions.csv')
+
+            train_dataframe[out_name+'_train_actuals'] = y_train_actuals
+            train_dataframe[out_name+'_train_preds'] = y_train_preds
+            test_dataframe[out_name+'_test_actuals'] = y_test_actuals
+            test_dataframe[out_name+'_test_preds'] = y_test_preds
+            val_dataframe[out_name+'_val_actuals'] = y_val_actuals
+            val_dataframe[out_name+'_val_preds'] = y_val_preds
+
+        train_dataframe = pnd.DataFrame(train_dataframe)
+        test_dataframe = pnd.DataFrame(test_dataframe)
+        val_dataframe = pnd.DataFrame(val_dataframe)
+        train_dataframe.to_csv(preproc_datetime+'/train_predictions.csv')
+        test_dataframe.to_csv(preproc_datetime+'/test_predictions.csv')
+        val_dataframe.to_csv(preproc_datetime+'/val_predictions.csv')
         metrics = pnd.DataFrame(metrics)
-        metrics.to_csv(preproc_datetime+'/'+'metrics.csv')
+        metrics.to_csv(preproc_datetime+'/metrics.csv')
 
         
 
@@ -211,10 +219,11 @@ if model_type == "multi" or model_type == "single_multi":
                 y_test_preds[i].extend(y_test_pred[i].flatten().tolist())
                 y_val_actuals[i].extend(y_val_model[i].flatten().tolist())
                 y_val_preds[i].extend(y_val_pred[i].flatten().tolist())
-                # print(y_val_pred[i].flatten().tolist())
-        metrics = {}
         i = 0
-        output_preds = {}
+        metrics = {}
+        train_dataframe = {}
+        test_dataframe = {}
+        val_dataframe = {}
         for out_name, out_col in output_properties.items():
             metrics[out_name] = {
                 'train_rmse': 0, 'train_determ': 0, 'train_rpiq': 0,
@@ -224,16 +233,19 @@ if model_type == "multi" or model_type == "single_multi":
             metrics[out_name]['train_rmse'], metrics[out_name]['train_determ'], metrics[out_name]['train_rpiq'] = modelCNN2dSpectr.computeErrors(y_train_actuals[i], y_train_preds[i])
             metrics[out_name]['test_rmse'], metrics[out_name]['test_determ'], metrics[out_name]['test_rpiq'] = modelCNN2dSpectr.computeErrors(y_test_actuals[i], y_test_preds[i])
             metrics[out_name]['val_rmse'], metrics[out_name]['val_determ'], metrics[out_name]['val_rpiq'] = modelCNN2dSpectr.computeErrors(y_val_actuals[i], y_val_preds[i])
-            output_preds[out_name+'_train_actuals'] = y_train_actuals[i]
-            output_preds[out_name+'_train_preds'] = y_train_preds[i]
-            output_preds[out_name+'_test_actuals'] = y_test_actuals[i]
-            output_preds[out_name+'_test_preds'] = y_test_preds[i]
-            output_preds[out_name+'_val_actuals'] = y_val_actuals[i]
-            output_preds[out_name+'_val_preds'] = y_val_preds[i]
+            train_dataframe[out_name+'_train_actuals'] = y_train_actuals[i]
+            train_dataframe[out_name+'_train_preds'] = y_train_preds[i]
+            test_dataframe[out_name+'_test_actuals'] = y_test_actuals[i]
+            test_dataframe[out_name+'_test_preds'] = y_test_preds[i]
+            val_dataframe[out_name+'_val_actuals'] = y_val_actuals[i]
+            val_dataframe[out_name+'_val_preds'] = y_val_preds[i]
             i += 1
         print(metrics)
+        train_dataframe = pnd.DataFrame(train_dataframe)
+        test_dataframe = pnd.DataFrame(test_dataframe)
+        val_dataframe = pnd.DataFrame(val_dataframe)
+        train_dataframe.to_csv(preproc_datetime+'/train_predictions.csv')
+        test_dataframe.to_csv(preproc_datetime+'/test_predictions.csv')
+        val_dataframe.to_csv(preproc_datetime+'/val_predictions.csv')
         metrics = pnd.DataFrame(metrics)
         metrics.to_csv(preproc_datetime+'/metrics.csv')
-
-        output_preds = pnd.DataFrame(output_preds)
-        output_preds.to_csv(preproc_datetime+'/predictions.csv')

@@ -383,6 +383,7 @@ def createModelMulti(input_shape, output_properties, printDetails, loss_weights=
 	return model 
 
 def customModelSingle( fold_path, prop, x_in_train, y_train, x_in_val, y_val, x_in_test, y_test, v_to_h_ratio, epochs, batch_size, standarizer ):
+	# return np.array([2,3,4,5,2]), np.array([2,3,4,3,2]), np.array([2,8,5,2]), np.array([2,3,4,2]), np.array([2,5,2]), np.array([2,3,2])
 	output_mode = 'statistic_minus_1_1'
 	input_mode = 'minus_1_1'
 
@@ -476,9 +477,6 @@ def customModelSingle( fold_path, prop, x_in_train, y_train, x_in_val, y_val, x_
 							 'determ': [determ_train, determ_val, determ_test],
 							 'rpiq': [rpiq_train, rpiq_val, rpiq_test]})
 	metrics.to_csv(fold_path+'/'+prop+'_metrics.csv')
-	# batch_size
-	# import pandas
-	# pandas.dataframe
 	a = pnd.DataFrame({'y_test': y_test, 'y_test_pred': y_test_pred})
 	a.to_csv(fold_path+'/'+prop+'.csv')
 
@@ -562,7 +560,7 @@ def customModelMulti( fold_path, output_properties, x_in_train, y_train, x_in_va
 	metrics = pnd.DataFrame(metrics)
 	metrics.to_csv(fold_path+'/metrics.csv')
 
-	# predictionss = pnd.DataFrame({'y_test': y_test, 'y_test_pred': y_test_pred})
+	# predictions = pnd.DataFrame({'y_test': y_test, 'y_test_pred': y_test_pred})
 	# preds.to_csv(fold_path+'/'+prop+'.csv')
 	return y_train_model, y_train_pred, y_test_model, y_test_pred, y_val_model, y_val_pred
 
