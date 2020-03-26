@@ -369,9 +369,9 @@ def createModelMulti(input_shape, output_properties, printDetails, loss_weights=
 		mult_layer = Flatten()(mult_layer)
 		# mult_layer = Flatten(input_shape=cnn_common.output_shape[1:])(mult_layer)
 		# model.add(Dropout(0.5))
-		mult_layer = Dense(64, kernel_initializer=kernel_initializer, bias_initializer=bias_initializer)(mult_layer)
-		mult_layer = BatchNormalization()(mult_layer)
-		mult_layer = ReLU()(mult_layer)
+		# mult_layer = Dense(64, kernel_initializer=kernel_initializer, bias_initializer=bias_initializer)(mult_layer)
+		# mult_layer = BatchNormalization()(mult_layer)
+		# mult_layer = ReLU()(mult_layer)
 		# Layer 9
 		mult_layer = Dense(1, activation='linear', name=out_name, kernel_initializer=kernel_initializer, bias_initializer=bias_initializer)(mult_layer)
 		outputs.append(mult_layer)
