@@ -33,7 +33,7 @@ folder_with_spectra = "../dataset/sources"
 #     "Absorbances_reduced.csv", "Absorbances_SG0_SNV_reduced.csv", 
 #     "Absorbances_SG1_reduced.csv", "Absorbances_SG1_SNV_reduced.csv",
 #     "Absorbances_SG2_reduced.csv", "CR_reduced.csv"]
-pre_processing_techniques = ["absorbances_sg1.csv", "reflectances.csv"]
+pre_processing_techniques = ["reflectances.csv", "absorbances_sg1.csv"]
 path_to_properties  = "../dataset/properties.csv"
 output_properties_cols = {
     "Clay" :5,
