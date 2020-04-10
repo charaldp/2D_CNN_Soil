@@ -1,17 +1,52 @@
 #!/usr/bin/env python
 # coding: utf-8
 import sys
-if (len(sys.argv) < 6):
-    print('Error! Incorrect arguments')
-    print('Usage: python parse_data.py <model_type> <epochs> <batch_size> <undersampling> <v/h> <property1> <property2> <etc>')
-    exit(1)
+# if (len(sys.argv) < 6):
+#     print('Error! Incorrect arguments')
+#     exit('Usage: python parse_data.py <model_type> <epochs> <batch_size> <undersampling> <v/h> <property1> <property2> <etc>')
 import spectra_parser as sp
+import argparse as argp
 import os
 import numpy as np
 import pandas as pnd
 import modelCNN2dSpectr
 from modelCNN2dSpectr import OutputStandarizer
 from datetime import datetime
+
+def parse_args():
+    parser = argp.ArgumentParser(description='Convolutional Neural Network, multiple Output')
+    print(parser)
+    # Required
+    parser.add_argument('-n','--name',type=str, help='A specific name for the test of the batch',default='')
+    parser.add_argument('-so','--singleInput', help='Single Input',action='store_true')
+    parser.add_argument('-si','--singleOutput', help='Single Output',action='store_true')
+    # Optional
+    parser.add_argument('-opt','--optimizer',type=str, help='Properties on which models will be trained',default='OC', nargs='+')
+    parser.add_argument('-mp','--maxPooling', type=int, help='Positions of Max Pooling layers', nargs='+')
+    parser.add_argument('-lf','--layersFilters', type=int, help='Number of filter at each layer', nargs='+')
+    parser.add_argument('-k','--kernelSize',type=int, help='Select kernel size',default=3)
+    parser.add_argument('-b','--batchSize',type=int, help='Select batch size',default=24)
+    parser.add_argument('-e','--epochs',type=int, help='Number of epochs size',default=100)
+    parser.add_argument('-fl','--folds',type=int, help='Number of folds',default=5)
+    parser.add_argument('-us','--undersampling',type=float, help='Undersampling factor (greater or equal to 1)',default=1)
+    parser.add_argument('-vh','--undersampling',type=float, help='Ratio of vertical to horizontal image aspect (diversion from [51, 83])',default=1)
+    parser.add_argument('-opt','--optimizer',type=str, help='Optimizer used during training',default='Adam')
+    parser.add_argument('-mod','--saveModel', help='Decide whether model will be saved at output directory',action='store_true')
+    
+    # Default Values
+    # parser.add_argument('-stand','--standardize', help='Select standardization type.',choices=['per-band','all','no'],default='no')
+    # parser.add_argument('-f','--filters', nargs='+', type=int,default=[32,64],help='Select number of filters.')
+    # parser.add_argument('-k','--kernelSize',type=int, help='Select kernel size.',default=7)
+    # parser.add_argument('-b','--batchSize',type=int, help='Select batch size.',default=10)
+    # parser.add_argument('-r','--regularizationSize',type=float, help='Select regularization size.',default=0.0004)
+    # parser.add_argument('-fc','--fully', nargs='+', type=int,default=[100,40],help='Select number of filters.')
+    # parser.add_argument('-lr','--lr',type=int, help='Select batch size.',default=60)
+    # parser.add_argument('-m','--maxNorm',type=float, help='Select regularization size.',default=1)
+    args = parser.parse_args()
+    return args
+
+args = parse_args()
+print(args)
 arg_it = 1
 model_type = str(sys.argv[arg_it])
 arg_it+=1
@@ -29,17 +64,12 @@ print("Undersampling Factor: "+str(undersampling_factor))
 print("V/H Image: "+str(v_to_h_ratio))
 # Path definitions here
 folder_with_spectra = "../dataset/sources"
-# pre_processing_techniques = [
-#     "Absorbances_reduced.csv", "Absorbances_SG0_SNV_reduced.csv", 
-#     "Absorbances_SG1_reduced.csv", "Absorbances_SG1_SNV_reduced.csv",
-#     "Absorbances_SG2_reduced.csv", "CR_reduced.csv"]
 pre_processing_techniques = ["reflectances.csv", "absorbances_sg1.csv"]
 path_to_properties  = "../dataset/properties.csv"
 output_properties_cols = {
     "Clay" :5,
     "Silt": 6,
     "Sand": 7,
-    # "pH.in.H20": 9,
     "pH": 9,
     "OC": 10,
     "CaCO3": 11,
@@ -50,15 +80,15 @@ output_properties_cols = {
 }
 output_properties = { sys.argv[x] : output_properties_cols[sys.argv[x]] for x in range(arg_it, len(sys.argv)) }
 print(output_properties)
-# global prop_count
 prop_count = len(output_properties.items())
 
 print("Loading Data")
-data_parser = sp.SpectraParser("../dataset/Mineral_Absorbances.json")
+INPUT_SPECTRA = "../dataset/Mineral_Absorbances.json"
+data_parser = sp.SpectraParser(INPUT_SPECTRA)
 data_parser.output_file = path_to_properties
 print("Done")
 # Output Paths
-output_path = '../output'
+OUTPUT_PATH = '../output'
 if not os.path.exists(output_path):
     os.mkdir(output_path)
 datetime_str = datetime.now().strftime("%Y_%m_%d__%H_%M_%S")+'/'

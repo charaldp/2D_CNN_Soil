@@ -86,6 +86,26 @@ class PrintModelCallback(Callback):
 			print(self.model.layers[layer].get_weights())
 
 
+class SoilModel(object):
+	def __init__(self, initialization_options):
+		if "epochs" in initialization_options:
+			self.epochs = initialization_options['epochs']
+		else:
+			exit('No number of epochs is undefined')
+		self.standarizer = initialization_options.standarizer
+
+	def createModel(self, single_multi):
+		if single_multi:
+			self.model = createModelSingle()
+		else:
+			self.model = createModelMulti()
+
+	def trainModel(self):
+		self.model.fit()
+		
+
+
+
 def coeff_determination(y_true, y_pred):
 	from keras import backend as K
 	SS_res =  K.sum(K.square( y_true-y_pred ))
@@ -242,7 +262,6 @@ def outputAtNormalRange(y, prop, mode, standarizer):
 	return y_norm
 
 def outputFromNormalRange(y_norm, prop, mode, standarizer):
-	props = lucas_soil_properties()
 	if mode == 'linear_minus_1_1':
 		y = (y_norm + 1) * (standarizer.statistics[prop]['max'] - standarizer.statistics[prop]['min']) / 2 + standarizer.statistics[prop]['min']
 	elif mode == 'statistic_minus_1_1':
@@ -272,7 +291,7 @@ def outputFromNormalRangeMulti(y, output_properties, mode, standarizer):
 	return y_out
 
 def applySpectraSavgol( x_in_spectra, window_length, polyorder, deriv ):
-	spectra_out = signal.savgol_filter(x, window_length, polyorder, deriv)
+	spectra_out = signal.savgol_filter(x_in_spectra, window_length, polyorder, deriv)
 	return spectra_out
 
 
