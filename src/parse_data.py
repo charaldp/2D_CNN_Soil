@@ -15,21 +15,22 @@ from datetime import datetime
 
 def parse_args():
     parser = argp.ArgumentParser(description='Convolutional Neural Network, multiple Output')
-    print(parser)
     # Required
     parser.add_argument('-n','--name',type=str, help='A specific name for the test of the batch',default='')
     parser.add_argument('-so','--singleInput', help='Single Input',action='store_true')
     parser.add_argument('-si','--singleOutput', help='Single Output',action='store_true')
+    parser.add_argument('-pr','--properties',type=str, help='Properties on which models will be trained',default=['OC'], nargs='+')
+    parser.add_argument('-mp','--maxPooling', type=int, help='Positions of Max Pooling layers', nargs='+', default=[0, 2])
+    parser.add_argument('-lf','--layersFilters', type=int, help='Number of filter at each layer', nargs='+', default=[64, 128, 256, 512, 64])
+    parser.add_argument('-dn','--denseLayersSizes', type=int, help='Size of the last dense layers', nargs='+', default=[100])
+    parser.add_argument('-prt','--preprecessingTec', type=str, help='Preprocessing techniques for input spectra', nargs='+', default=["reflectances.csv", "absorbances_sg1.csv"])
     # Optional
-    parser.add_argument('-opt','--optimizer',type=str, help='Properties on which models will be trained',default='OC', nargs='+')
-    parser.add_argument('-mp','--maxPooling', type=int, help='Positions of Max Pooling layers', nargs='+')
-    parser.add_argument('-lf','--layersFilters', type=int, help='Number of filter at each layer', nargs='+')
     parser.add_argument('-k','--kernelSize',type=int, help='Select kernel size',default=3)
     parser.add_argument('-b','--batchSize',type=int, help='Select batch size',default=24)
     parser.add_argument('-e','--epochs',type=int, help='Number of epochs size',default=100)
     parser.add_argument('-fl','--folds',type=int, help='Number of folds',default=5)
     parser.add_argument('-us','--undersampling',type=float, help='Undersampling factor (greater or equal to 1)',default=1)
-    parser.add_argument('-vh','--undersampling',type=float, help='Ratio of vertical to horizontal image aspect (diversion from [51, 83])',default=1)
+    parser.add_argument('-vh','--vhRatio',type=float, help='Ratio of vertical to horizontal image aspect (diversion from [51, 83])',default=1)
     parser.add_argument('-opt','--optimizer',type=str, help='Optimizer used during training',default='Adam')
     parser.add_argument('-mod','--saveModel', help='Decide whether model will be saved at output directory',action='store_true')
     
@@ -47,26 +48,15 @@ def parse_args():
 
 args = parse_args()
 print(args)
-arg_it = 1
-model_type = str(sys.argv[arg_it])
-arg_it+=1
-epochs = int(sys.argv[arg_it])
-arg_it+=1
-batch_size = int(sys.argv[arg_it])
-arg_it+=1
-undersampling_factor = float(sys.argv[arg_it])
-arg_it+=1
-v_to_h_ratio = float(sys.argv[arg_it])
-arg_it+=1
-print("Epochs: "+str(epochs))
-print("Batch Size: "+str(batch_size))
-print("Undersampling Factor: "+str(undersampling_factor))
-print("V/H Image: "+str(v_to_h_ratio))
+print("Epochs: ", args.epochs)
+print("Batch Size: ", args.batchSize)
+print("Undersampling Factor: ", args.undersampling)
+print("V/H Image: ", args.vhRatio)
 # Path definitions here
-folder_with_spectra = "../dataset/sources"
-pre_processing_techniques = ["reflectances.csv", "absorbances_sg1.csv"]
-path_to_properties  = "../dataset/properties.csv"
-output_properties_cols = {
+FOLDER_WITH_SPECTRA = "../dataset/sources"
+# PREPROCESSING_TECHNIQUES = ["reflectances.csv", "absorbances_sg1.csv"]
+PATH_TO_PROPERTIES  = "../dataset/properties.csv"
+OUTPUT_PROPERTIES_COLUMNS = {
     "Clay" :5,
     "Silt": 6,
     "Sand": 7,
@@ -78,29 +68,33 @@ output_properties_cols = {
     "K": 14,
     "CEC": 15
 }
-output_properties = { sys.argv[x] : output_properties_cols[sys.argv[x]] for x in range(arg_it, len(sys.argv)) }
+output_properties = { prop : OUTPUT_PROPERTIES_COLUMNS[prop] for prop in args.properties }
 print(output_properties)
 prop_count = len(output_properties.items())
+for out_name, out_col in output_properties.items():
+    print("Prop "+out_name)
+for index, out_col in enumerate(args.properties):
+    print(index, out_col)
 
 print("Loading Data")
-INPUT_SPECTRA = "../dataset/Mineral_Absorbances.json"
+INPUT_SPECTRA = "../dataset/Grassland_Absorbances.json"
 data_parser = sp.SpectraParser(INPUT_SPECTRA)
-data_parser.output_file = path_to_properties
+data_parser.output_file = PATH_TO_PROPERTIES
 print("Done")
 # Output Paths
 OUTPUT_PATH = '../output'
-if not os.path.exists(output_path):
-    os.mkdir(output_path)
-datetime_str = datetime.now().strftime("%Y_%m_%d__%H_%M_%S")+'/'
-path_datetime = os.path.join(output_path, datetime_str)
+if not os.path.exists(OUTPUT_PATH):
+    os.mkdir(OUTPUT_PATH)
+datetime_str = datetime.now().strftime("%Y_%m_%d__%H_%M_%S_")+args.name+'/'
+path_datetime = os.path.join(OUTPUT_PATH, datetime_str)
 if not os.path.exists(path_datetime):
     os.mkdir(path_datetime)
 
-if model_type == "single" or model_type == "single_multi":
+if args.singleOutput:# == "single" or model_type == "single_multi":
     single_path = os.path.join(path_datetime, 'single_output')
     if not os.path.exists(single_path):
         os.mkdir(single_path)
-    for pre_process in pre_processing_techniques:
+    for pre_process in args.preprecessingTec:
         preproc_datetime = os.path.join(single_path, pre_process[0:len(pre_process) - 4])
         if not os.path.exists(preproc_datetime):
             os.mkdir(preproc_datetime)
@@ -112,19 +106,19 @@ if model_type == "single" or model_type == "single_multi":
         for out_name, out_col in output_properties.items():
             print("Prop "+out_name)
         
-            data_parser.input_spectra = os.path.join(folder_with_spectra, pre_process)
+            data_parser.input_spectra = os.path.join(FOLDER_WITH_SPECTRA, pre_process)
             x = data_parser.x()
             y = data_parser.y(out_col)
             standarizer = modelCNN2dSpectr.OutputStandarizer({out_name: out_col}, [y])
             print(len(x))
             # exit()
-            if undersampling_factor != 1:
+            if args.undersampling != 1:
                 indices = []
                 i = 0
                 indices_orig = range(len(x[0]))
                 while i < len(x[0]):
                     indices.append(i)
-                    i += undersampling_factor
+                    i += args.undersampling
                        
                 x_1 = []
                 for i in range(len(x)):
@@ -148,7 +142,9 @@ if model_type == "single" or model_type == "single_multi":
                 path_fold = os.path.join(preproc_datetime, str(fold))
                 if not os.path.exists(path_fold):
                     os.mkdir(path_fold)
-                y_train_model, y_train_pred, y_test_model, y_test_pred, y_val_model, y_val_pred = modelCNN2dSpectr.customModelSingle(path_fold, out_name, x_trn, y_trn, x_val, y_val, x_tst, y_tst, v_to_h_ratio, epochs, batch_size, standarizer)
+                
+                soil_predictor = modelCNN2dSpectr.SoilModel(path_fold, x_trn[0], args, standarizer, out_name)
+                y_train_model, y_train_pred, y_test_model, y_test_pred, y_val_model, y_val_pred = soil_predictor.customModelSingle(x_trn, y_trn, x_val, y_val, x_tst, y_tst)
                 y_train_actuals.extend(y_train_model.flatten().tolist())
                 y_train_preds.extend(y_train_pred.flatten().tolist())
                 y_test_actuals.extend(y_test_model.flatten().tolist())
@@ -182,16 +178,16 @@ if model_type == "single" or model_type == "single_multi":
 
         
 
-if model_type == "multi" or model_type == "single_multi":
+if not args.singleOutput:#model_type == "multi" or model_type == "single_multi":
     multi_path = os.path.join(path_datetime, 'multi_output')
     if not os.path.exists(multi_path):
         os.mkdir(multi_path)
-    for pre_process in pre_processing_techniques:
+    for pre_process in args.preprecessingTec:
         preproc_datetime = os.path.join(multi_path, pre_process[0:len(pre_process) - 4])
         if not os.path.exists(preproc_datetime):
             os.mkdir(preproc_datetime)
         print("Preproc "+pre_process)
-        data_parser.input_spectra = os.path.join(folder_with_spectra, pre_process)
+        data_parser.input_spectra = os.path.join(FOLDER_WITH_SPECTRA, pre_process)
         x = data_parser.x()
         y = []
         for out_name, out_col in output_properties.items():
@@ -201,13 +197,13 @@ if model_type == "multi" or model_type == "single_multi":
         print(standarizer.statistics)
         # print(len(y))
         # print(len(x))
-        if undersampling_factor != 1:
+        if args.undersampling != 1:
             indices = []
             i = 0
             indices_orig = range(len(x[0]))
             while i < len(x[0]):
                 indices.append(i)
-                i += undersampling_factor
+                i += args.undersampling
              
             x_1 = []
             for i in range(len(x)):
@@ -241,7 +237,8 @@ if model_type == "multi" or model_type == "single_multi":
             path_fold = os.path.join(preproc_datetime, str(fold))
             if not os.path.exists(path_fold):
                 os.mkdir(path_fold)
-            y_train_model, y_train_pred, y_test_model, y_test_pred, y_val_model, y_val_pred = modelCNN2dSpectr.customModelMulti( path_fold, output_properties, x_trn, y_trn, x_val, y_val, x_tst, y_tst, v_to_h_ratio, epochs, batch_size, standarizer )
+            soil_predictor = modelCNN2dSpectr.SoilModel(path_fold, x_trn[0], args, standarizer, '', output_properties)
+            y_train_model, y_train_pred, y_test_model, y_test_pred, y_val_model, y_val_pred = soil_predictor.customModelMulti( x_trn, y_trn, x_val, y_val, x_tst, y_tst )
             for i in range(len(y)):
                 y_train_actuals[i].extend(y_train_model[i].flatten().tolist())
                 y_train_preds[i].extend(y_train_pred[i].flatten().tolist())
