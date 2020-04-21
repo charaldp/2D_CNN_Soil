@@ -245,7 +245,7 @@ class SoilModel(object):
 		if mode == 'linear_minus_1_1':
 			y = (y_norm + 1) * (self.__standarizer.statistics[prop]['max'] - self.__standarizer.statistics[prop]['min']) / 2 + self.__standarizer.statistics[prop]['min']
 		elif mode == 'statistic_minus_1_1':
-			y = y_norm * self.__standarizerself.statistics[prop]['std'] + self.__standarizer.statistics[prop]['mean']
+			y = y_norm * self.__standarizer.statistics[prop]['std'] + self.__standarizer.statistics[prop]['mean']
 		elif mode == 'linear_zero_one':
 			y = self.outputFromNormalRange((y_norm - 0.5) * 2, prop, 'linear_minus_1_1')
 		elif mode == 'statistic_zero_one':
@@ -422,7 +422,7 @@ class SoilModel(object):
 			clbcks = []
 			clbcks.append(TrainingResetCallback())
 			# clbcks.append(ReduceLROnPlateau(min_lr=0.0001))
-			clbcks.append(ModelCheckpoint(self.__fold_path+'/'+prop+'_weights.hdf5', monitor='val_loss', verbose=0, save_best_only=True, save_weights_only=True, mode='min', period=1))
+			clbcks.append(ModelCheckpoint(self.__fold_path+'/'+self.__prop+'_weights.hdf5', monitor='val_loss', verbose=0, save_best_only=True, save_weights_only=True, mode='min', period=1))
 			# {epoch:02d}-{val_loss:.2f}.
 			# clbcks.append(EarlyStopping(monitor='val_loss', min_delta=0, patience=0, verbose=0, mode='min', baseline=None, restore_best_weights=True))
 			# clbcks.append(PrintModelCallback())
@@ -522,7 +522,39 @@ class SoilModel(object):
 		# clbcks.append(ReduceLROnPlateau(min_lr=0.0001))
 		clbcks.append(ModelCheckpoint(self.__fold_path+'/multi_weights.hdf5', monitor='val_loss', verbose=0, save_best_only=True, save_weights_only=True, mode='min', period=1))
 		history = model.fit(x_train_spec, y_train_model, epochs=self.__epochs, batch_size=self.__batch_size, validation_data=(x_val_spec, y_val_model),callbacks=clbcks)
+		metrics = pnd.DataFrame(history.history)
+		metrics.to_csv(self.__fold_path+'/learning.csv')
+		print(history.history)
+
+		print(history.history['loss'])
+		print(history.history['val_loss'])
+		plots = []
+		for name in self.__output_properties:
+			plots.append(name+'_loss')
+			# plots.append('val_'+name+'_loss')
+		plots.append('loss')
+		# plots.append('val_loss')
+		print(plots)
 		
+		for name in plots:
+			print('Plots!', name,'val_'+name)
+			plt.plot(history.history[name])
+			print(2)
+			plt.plot(history.history['val_'+name])
+			print(3)
+			plt.title('Global Model Loss')
+			print(4)
+			plt.ylabel('Loss')
+			print(5)
+			plt.xlabel('Epoch')
+			print(6)
+			plt.legend(['Train', 'Validation'], loc='upper right')
+			print(7)
+			plt.grid(linestyle=':')
+			print(8)
+			plt.savefig(self.__fold_path+'/model_'+name+'.eps',format='eps',dpi=1000,bbox_inches='tight')
+			print(9)
+			plt.close()
 		y_train_pred = model.predict(x_train_spec)
 		y_test_pred = model.predict(x_test_spec)
 		y_val_pred = model.predict(x_val_spec)

@@ -77,7 +77,7 @@ for index, out_col in enumerate(args.properties):
     print(index, out_col)
 
 print("Loading Data")
-INPUT_SPECTRA = "../dataset/Grassland_Absorbances.json"
+INPUT_SPECTRA = "../dataset/Mineral_Absorbances.json"
 data_parser = sp.SpectraParser(INPUT_SPECTRA)
 data_parser.output_file = PATH_TO_PROPERTIES
 print("Done")
