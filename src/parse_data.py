@@ -20,7 +20,7 @@ def parse_args():
     parser.add_argument('-so','--singleInput', help='Single Input',action='store_true')
     parser.add_argument('-si','--singleOutput', help='Single Output',action='store_true')
     parser.add_argument('-pr','--properties',type=str, help='Properties on which models will be trained',default=['OC'], nargs='+')
-    parser.add_argument('-mp','--maxPooling', type=int, help='Positions of Max Pooling layers', nargs='+', default=[0, 2])
+    parser.add_argument('-mp','--maxPooling', type=int, help='Positions of Max Pooling layers', nargs='*', default=[0, 2])
     parser.add_argument('-lf','--layersFilters', type=int, help='Number of filter at each layer', nargs='+', default=[64, 128, 256, 512, 64])
     parser.add_argument('-dn','--denseLayersSizes', type=int, help='Size of the last dense layers', nargs='+', default=[100])
     parser.add_argument('-prt','--preprecessingTec', type=str, help='Preprocessing techniques for input spectra', nargs='+', default=["reflectances.csv", "absorbances_sg1.csv"])
