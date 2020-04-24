@@ -33,16 +33,7 @@ def parse_args():
     parser.add_argument('-vh','--vhRatio',type=float, help='Ratio of vertical to horizontal image aspect (diversion from [51, 83])',default=1)
     parser.add_argument('-opt','--optimizer',type=str, help='Optimizer used during training',default='Adam')
     parser.add_argument('-mod','--saveModel', help='Decide whether model will be saved at output directory',action='store_true')
-    
-    # Default Values
-    # parser.add_argument('-stand','--standardize', help='Select standardization type.',choices=['per-band','all','no'],default='no')
-    # parser.add_argument('-f','--filters', nargs='+', type=int,default=[32,64],help='Select number of filters.')
-    # parser.add_argument('-k','--kernelSize',type=int, help='Select kernel size.',default=7)
-    # parser.add_argument('-b','--batchSize',type=int, help='Select batch size.',default=10)
-    # parser.add_argument('-r','--regularizationSize',type=float, help='Select regularization size.',default=0.0004)
-    # parser.add_argument('-fc','--fully', nargs='+', type=int,default=[100,40],help='Select number of filters.')
-    # parser.add_argument('-lr','--lr',type=int, help='Select batch size.',default=60)
-    # parser.add_argument('-m','--maxNorm',type=float, help='Select regularization size.',default=1)
+
     args = parser.parse_args()
     return args
 
@@ -77,7 +68,7 @@ for index, out_col in enumerate(args.properties):
     print(index, out_col)
 
 print("Loading Data")
-INPUT_SPECTRA = "../dataset/Mineral_Absorbances.json"
+INPUT_SPECTRA = "../dataset/Grassland_Absorbances.json"
 data_parser = sp.SpectraParser(INPUT_SPECTRA)
 data_parser.output_file = PATH_TO_PROPERTIES
 print("Done")
@@ -89,7 +80,10 @@ datetime_str = datetime.now().strftime("%Y_%m_%d__%H_%M_%S_")+args.name+'/'
 path_datetime = os.path.join(OUTPUT_PATH, datetime_str)
 if not os.path.exists(path_datetime):
     os.mkdir(path_datetime)
-
+df = pnd.DataFrame.from_dict(args.__dict__, orient='index')
+df.transpose()
+# arguments = pnd.DataFrame(args.__dict__)
+df.to_csv(path_datetime+'/arguments.csv')
 if args.singleOutput:# == "single" or model_type == "single_multi":
     single_path = os.path.join(path_datetime, 'single_output')
     if not os.path.exists(single_path):
