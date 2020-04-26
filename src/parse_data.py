@@ -24,10 +24,11 @@ def parse_args():
     parser.add_argument('-lf','--layersFilters', type=int, help='Number of filter at each layer', nargs='+', default=[64, 128, 256, 512, 64])
     parser.add_argument('-dn','--denseLayersSizes', type=int, help='Size of the last dense layers', nargs='+', default=[100])
     parser.add_argument('-prt','--preprecessingTec', type=str, help='Preprocessing techniques for input spectra', nargs='+', default=["reflectances.csv", "absorbances_sg1.csv"])
-    # Optional
+    parser.add_argument('-is','--inputSpectra', type=str, help='Input Spectra instances json to use', default='Mineral_Absorbances')
+    # OptionalMineral_Absorbances
     parser.add_argument('-k','--kernelSize',type=int, help='Select kernel size',default=3)
     parser.add_argument('-b','--batchSize',type=int, help='Select batch size',default=24)
-    parser.add_argument('-e','--epochs',type=int, help='Number of epochs size',default=100)
+    parser.add_argument('-e','--epochs',type=int, help='Number of epochs',default=100)
     parser.add_argument('-fl','--folds',type=int, help='Number of folds',default=5)
     parser.add_argument('-us','--undersampling',type=float, help='Undersampling factor (greater or equal to 1)',default=1)
     parser.add_argument('-vh','--vhRatio',type=float, help='Ratio of vertical to horizontal image aspect (diversion from [51, 83])',default=1)
@@ -68,7 +69,7 @@ for index, out_col in enumerate(args.properties):
     print(index, out_col)
 
 print("Loading Data")
-INPUT_SPECTRA = "../dataset/Mineral_Absorbances.json"
+INPUT_SPECTRA = "../dataset/"+args.inputSpectra+".json"
 data_parser = sp.SpectraParser(INPUT_SPECTRA)
 data_parser.output_file = PATH_TO_PROPERTIES
 print("Done")
