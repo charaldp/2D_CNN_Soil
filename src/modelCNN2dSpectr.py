@@ -281,7 +281,7 @@ class SoilModel(object):
 			out = MaxPooling2D(pool_size=(2, 2))(out)
 		return out
 
-	def createModelSingle(self, printDetails):
+	def createModelSingle(self, printDetails = True):
 		# To try activations: (relu, elu, tanh, sigmoid)
 		activation_fun = 'relu'
 		kernel_initializer = 'random_uniform'
@@ -292,17 +292,17 @@ class SoilModel(object):
 		#create model
 		
 		input_shape = self.__input_shape
-		self.model = Sequential()
-		for index, layer_filters in self.__layersFilters:
-			self.model.add(Conv2D(layer_filters, self.args.kernelSize, padding='same', kernel_initializer=kernel_initializer, bias_initializer=bias_initializer))
-			self.model.add(BatchNormalization())
-			self.model.add(ReLU())
+		model = Sequential()
+		for index, layer_filters in enumerate(self.__layersFilters):
+			model.add(Conv2D(layer_filters, self.__kernelSize, input_shape=input_shape, padding='same', kernel_initializer=kernel_initializer, bias_initializer=bias_initializer))
+			model.add(BatchNormalization())
+			model.add(ReLU())
 			if index in self.__maxPooling:
-				self.model.add(MaxPooling2D(pool_size=(2, 2)))
+				model.add(MaxPooling2D(pool_size=(2, 2)))
 				input_shape = tuple([input_shape[0] / 2, input_shape[1] / 2, 1])
-		model.add(Flatten(input_shape=model.output_shape[1:]))
+		model.add(Flatten(input_shape=input_shape))
 		model.add(Dropout(0.5))
-		for layer_size in self.args.denseLayersSizes:
+		for layer_size in self.__denseLayersSizes:
 			model.add(Dense(layer_size, kernel_initializer=kernel_initializer, bias_initializer=bias_initializer))
 			model.add(BatchNormalization())
 			model.add(ReLU())
@@ -426,7 +426,7 @@ class SoilModel(object):
 			# {epoch:02d}-{val_loss:.2f}.
 			# clbcks.append(EarlyStopping(monitor='val_loss', min_delta=0, patience=0, verbose=0, mode='min', baseline=None, restore_best_weights=True))
 			# clbcks.append(PrintModelCallback())
-			history = model.fit(x_train_spec, y_train, validation_data=(x_val_spec, y_val), epochs=epochs, batch_size=batch_size, callbacks=clbcks)
+			history = model.fit(x_train_spec, y_train, validation_data=(x_val_spec, y_val), epochs=self.__epochs, batch_size=self.__batch_size, callbacks=clbcks)
 			stand_d = np.std(history.history['val_loss'])
 			mean = np.mean(history.history['val_loss'])
 			print("Learning Curve Standard Deviation: "+str(stand_d))
@@ -443,7 +443,7 @@ class SoilModel(object):
 		plt.xlabel('Epoch')
 		plt.legend(['Train', 'Validation'], loc='upper right')
 		plt.grid(linestyle=':')
-		plt.savefig(self.__fold_path+'/'+self.__prop+'model-loss.eps',format='eps',dpi=1000,bbox_inches='tight')
+		plt.savefig(self.__fold_path+'/model_'+self.__prop+'_loss.eps',format='eps',dpi=1000,bbox_inches='tight')
 		plt.close()
 
 		model_weights = self.__fold_path+'/'+self.__prop+'_weights.hdf5'
@@ -489,9 +489,9 @@ class SoilModel(object):
 								'RMSE': [rmse_train, rmse_val, rmse_test],
 								'determ': [determ_train, determ_val, determ_test],
 								'rpiq': [rpiq_train, rpiq_val, rpiq_test]})
-		metrics.to_csv(self.__fold_path+'/'+prop+'_metrics.csv')
+		metrics.to_csv(self.__fold_path+'/'+self.__prop+'_metrics.csv')
 		a = pnd.DataFrame({'y_test': y_test, 'y_test_pred': y_test_pred})
-		a.to_csv(self.__fold_path+'/'+prop+'.csv')
+		a.to_csv(self.__fold_path+'/'+self.__prop+'.csv')
 
 		return y_train, y_train_pred, y_test, y_test_pred, y_val, y_val_pred
 
