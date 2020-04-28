@@ -435,19 +435,20 @@ class SoilModel(object):
 				break
 			patience += 1
 			print("Reinitializing Model...")
-
-		plt.plot(history.history['loss'])
-		plt.plot(history.history['val_loss'])
-		plt.title('Global Model Loss')
-		plt.ylabel('Loss')
-		plt.xlabel('Epoch')
-		plt.legend(['Train', 'Validation'], loc='upper right')
-		plt.grid(linestyle=':')
-		plt.savefig(self.__fold_path+'/model_'+self.__prop+'_loss.eps',format='eps',dpi=1000,bbox_inches='tight')
-		plt.close()
+		
+		if not self.__initialization_options.discardLearnCurves:
+			plt.plot(history.history['loss'])
+			plt.plot(history.history['val_loss'])
+			plt.title('Global Model Loss')
+			plt.ylabel('Loss')
+			plt.xlabel('Epoch')
+			plt.legend(['Train', 'Validation'], loc='upper right')
+			plt.grid(linestyle=':')
+			plt.savefig(self.__fold_path+'/model_'+self.__prop+'_loss.eps',format='eps',dpi=1000,bbox_inches='tight')
+			plt.close()
 
 		model_weights = self.__fold_path+'/'+self.__prop+'_weights.hdf5'
-		model = createModelSingle(False)
+		model = self.createModelSingle(False)
 		model.load_weights(model_weights)
 
 		y_train_pred = model.predict(x_train_spec)
@@ -461,12 +462,12 @@ class SoilModel(object):
 		y_test = np.array(y_test)
 
 		# Return to initial prop range
-		y_train = outputFromNormalRange(y_train, output_mode)
-		y_test = outputFromNormalRange(y_test, output_mode)
-		y_val = outputFromNormalRange(y_val, output_mode)
-		y_train_pred = outputFromNormalRange(y_train_pred, output_mode)
-		y_val_pred = outputFromNormalRange(y_val_pred, output_mode)
-		y_test_pred = outputFromNormalRange(y_test_pred, output_mode)
+		y_train = self.outputFromNormalRange(y_train, output_mode)
+		y_test = self.outputFromNormalRange(y_test, output_mode)
+		y_val = self.outputFromNormalRange(y_val, output_mode)
+		y_train_pred = self.outputFromNormalRange(y_train_pred, output_mode)
+		y_val_pred = self.outputFromNormalRange(y_val_pred, output_mode)
+		y_test_pred = self.outputFromNormalRange(y_test_pred, output_mode)
 
 		y_train_pred = np.array(y_train_pred.reshape(y_train_pred.shape[0]).tolist())
 		y_val_pred = np.array(y_val_pred.reshape(y_val_pred.shape[0]).tolist())
@@ -532,16 +533,17 @@ class SoilModel(object):
 		plots.append('loss')
 		# plots.append('val_loss')
 		
-		for name in plots:
-			plt.plot(history.history[name])
-			plt.plot(history.history['val_'+name])
-			plt.title('Global Model Loss')
-			plt.ylabel('Loss')
-			plt.xlabel('Epoch')
-			plt.legend(['Train', 'Validation'], loc='upper right')
-			plt.grid(linestyle=':')
-			plt.savefig(self.__fold_path+'/model_'+name+'.eps',format='eps',dpi=1000,bbox_inches='tight')
-			plt.close()
+		if not self.__initialization_options.discardLearnCurves:
+			for name in plots:
+				plt.plot(history.history[name])
+				plt.plot(history.history['val_'+name])
+				plt.title('Global Model Loss')
+				plt.ylabel('Loss')
+				plt.xlabel('Epoch')
+				plt.legend(['Train', 'Validation'], loc='upper right')
+				plt.grid(linestyle=':')
+				plt.savefig(self.__fold_path+'/model_'+name+'.eps',format='eps',dpi=1000,bbox_inches='tight')
+				plt.close()
 		y_train_pred = model.predict(x_train_spec)
 		y_test_pred = model.predict(x_test_spec)
 		y_val_pred = model.predict(x_val_spec)
