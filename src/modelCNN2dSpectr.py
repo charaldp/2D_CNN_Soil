@@ -136,6 +136,7 @@ class SoilModel(object):
 
 		self.__epochs = initialization_options.epochs
 		self.__v_to_h_ratio = initialization_options.vhRatio
+		self.__undersampling = initialization_options.undersampling
 		self.__batch_size = initialization_options.batchSize
 		self.__kernelSize = initialization_options.kernelSize
 		self.__maxPooling = initialization_options.maxPooling
@@ -161,8 +162,8 @@ class SoilModel(object):
 		self.model.fit()
 
 	def getInputShape(self, spectra):
-		mi = int(self.__v_to_h_ratio * 100)
-		nover = int(self.__v_to_h_ratio * 50)
+		mi = int(self.__v_to_h_ratio * 100 / (0.5 + self.__undersampling / 2))
+		nover = int(self.__v_to_h_ratio * 50 / (0.5 + self.__undersampling / 2))
 		window = signal.hann(M = mi)
 		[x, t, spec] = signal.spectrogram(x = np.array(spectra), fs = 1,window = window, nperseg = mi, noverlap = nover)
 		return spec.shape
@@ -172,8 +173,9 @@ class SoilModel(object):
 			num = 25
 		elif mode=='one_zero':
 			num = 50
-		mi = int(self.__v_to_h_ratio * 100)
-		nover = int(self.__v_to_h_ratio * 50)
+		mi = int(self.__v_to_h_ratio * 100 / (0.5 + self.__undersampling / 2))
+		nover = int(self.__v_to_h_ratio * 50 / (0.5 + self.__undersampling / 2))
+		print(mi, nover)
 		window = signal.hann(M = mi)
 		x_in_spectra = np.array(x_in_spectra)
 		x_spectrogram = np.empty(shape=(x_in_spectra.shape[0],self.__input_shape[0],self.__input_shape[1],1))
@@ -187,11 +189,12 @@ class SoilModel(object):
 		return x_spectrogram
 
 	def spectraToSpectrogramMulti(self, x_in_spectra, mode, v_to_h_ratio, input_shape, props):
+		# Multiple input (if used)
 		if mode=='minus_1_1':
 			num = 25
 		elif mode=='one_zero':
 			num = 50
-		mi = int(v_to_h_ratio * 100)
+		mi = int(v_to_h_ratio * 100 / selfundersampling)
 		nover = int(v_to_h_ratio * 50)
 		window = signal.hann(M = mi)
 		x_in_spectra = np.array(x_in_spectra)
