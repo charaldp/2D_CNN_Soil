@@ -28,6 +28,16 @@ import matplotlib.pyplot as plt
 import matplotlib as mpl
 import pandas as pnd
 from time import time
+import contextlib
+
+@contextlib.contextmanager
+def redirect_stdout(target):
+    original = sys.stdout
+    try:
+        sys.stdout = target
+        yield
+    finally:
+        sys.stdout = original
 
 
 
@@ -85,8 +95,6 @@ class PrintModelCallback(Callback):
 		for layer in self.checkedLayers:
 			print(self.model.layers[layer].get_weights())
 
-
-
 def coeff_determination(y_true, y_pred):
 	from keras import backend as K
 	SS_res =  K.sum(K.square( y_true-y_pred ))
@@ -141,22 +149,27 @@ class SoilModel(object):
 		self.__kernelSize = initialization_options.kernelSize
 		self.__maxPooling = initialization_options.maxPooling
 		self.__layersFilters = initialization_options.layersFilters
-		self.__denseLayersSizes = initialization_options.denseLayersSizes
+		if len(initialization_options.denseLayersSizes) == 1 and initialization_options.denseLayersSizes[0] == 0:
+			# Default dense sizes
+			self.__denseLayersSizes = [100] if initialization_options.singleOutput else [64]
+		else:
+			self.__denseLayersSizes = initialization_options.denseLayersSizes
 		self.__singleOutput = initialization_options.singleOutput
 		input_shape = self.getInputShape(spectra_for_input_shape)
 		self.__input_shape = tuple([input_shape[0], input_shape[1], 1])
-				
+		
 
 		if initialization_options.singleOutput:
 			self.__prop = prop
-		print(self.__input_shape)
+		print('Input Shape: ', self.__input_shape)
+		self.extractModelSummary()
 		
 
 	def createModel(self, printDetails = True):
 		if self.__singleOutput:
-			self.model = createModelSingle(printDetails)
+			return self.createModelSingle(printDetails)
 		else:
-			self.model = createModelMulti(printDetails)
+			return self.createModelMulti(printDetails)
 
 	def trainModel(self):
 		self.model.fit()
@@ -167,6 +180,13 @@ class SoilModel(object):
 		window = signal.hann(M = mi)
 		[x, t, spec] = signal.spectrogram(x = np.array(spectra), fs = 1,window = window, nperseg = mi, noverlap = nover)
 		return spec.shape
+
+	def extractModelSummary(self):
+		model = self.createModel(False)
+		if not os.path.exists(self.__fold_path+'/model_summary.txt'):
+				with open(self.__fold_path+'/model_summary.txt', 'w') as f:
+					with redirect_stdout(f):
+						model.summary()
 
 	def spectraToSpectrogram(self, x_in_spectra, mode):
 		if mode=='minus_1_1':
@@ -194,8 +214,8 @@ class SoilModel(object):
 			num = 25
 		elif mode=='one_zero':
 			num = 50
-		mi = int(v_to_h_ratio * 100 / selfundersampling)
-		nover = int(v_to_h_ratio * 50)
+		mi = int(v_to_h_ratio * 100 / (0.5 + self.__undersampling / 2))
+		nover = int(v_to_h_ratio * 50 / (0.5 + self.__undersampling / 2))
 		window = signal.hann(M = mi)
 		x_in_spectra = np.array(x_in_spectra)
 		x_spectrogram = np.empty(shape=(x_in_spectra.shape[0],input_shape[0],input_shape[1],1))
