@@ -17,8 +17,8 @@ def parse_args():
     parser = argp.ArgumentParser(description='Convolutional Neural Network, multiple Output')
     # Required
     parser.add_argument('-n','--name',type=str, help='A specific name for the test of the batch',default='')
-    parser.add_argument('-so','--singleInput', help='Single Input',action='store_true')
-    parser.add_argument('-si','--singleOutput', help='Single Output',action='store_true')
+    parser.add_argument('-si','--singleInput', help='Single Input',action='store_true')
+    parser.add_argument('-so','--singleOutput', help='Single Output',action='store_true')
     parser.add_argument('-pr','--properties',type=str, help='Properties on which models will be trained',default=['OC'], nargs='+')
     parser.add_argument('-mp','--maxPooling', type=int, help='Positions of Max Pooling layers', nargs='*', default=[0, 2])
     parser.add_argument('-lf','--layersFilters', type=int, help='Number of filter at each layer', nargs='+', default=[64, 128, 256, 512, 64])
@@ -179,12 +179,19 @@ if not args.singleOutput:#model_type == "multi" or model_type == "single_multi":
     if not os.path.exists(multi_path):
         os.mkdir(multi_path)
     for pre_process in args.preprecessingTec:
-        preproc_datetime = os.path.join(multi_path, pre_process[0:len(pre_process) - 4])
+        preproc_datetime = os.path.join(multi_path, pre_process[0:len(pre_process) - 4]) if args.singleInput else os.path.join(multi_path, 'multi_input')
         if not os.path.exists(preproc_datetime):
             os.mkdir(preproc_datetime)
-        print("Preproc "+pre_process)
-        data_parser.input_spectra = os.path.join(FOLDER_WITH_SPECTRA, pre_process)
-        x = data_parser.x()
+        if args.singleInput:
+            print("Preproc "+pre_process)
+            data_parser.input_spectra = os.path.join(FOLDER_WITH_SPECTRA, pre_process)
+            x = data_parser.x()
+        else:
+            x = []
+            for pre_proc in args.preprecessingTec:
+                print("Preproc "+pre_proc)
+                data_parser.input_spectra = os.path.join(FOLDER_WITH_SPECTRA, pre_proc)
+                x.append(data_parser.x())
         y = []
         for out_name, out_col in output_properties.items():
             print(out_name)
@@ -196,15 +203,24 @@ if not args.singleOutput:#model_type == "multi" or model_type == "single_multi":
         if args.undersampling != 1:
             indices = []
             i = 0
-            indices_orig = range(len(x[0]))
-            while i < len(x[0]):
+            length = len(x[0] if args.singleInput else x[0][0])
+            indices_orig = range(length)
+            while i < length:
                 indices.append(i)
                 i += args.undersampling
-             
-            x_1 = []
-            for i in range(len(x)):
-                x_1.append(np.interp(indices, indices_orig, x[i]))
-            x = x_1
+            
+            if args.singleInput:
+                x_1 = []
+                for i in range(len(x)):
+                    x_1.append(np.interp(indices, indices_orig, x[i]))
+                x = x_1
+            else:
+                for j in range(len(args.preprecessingTec)):
+                    x_1 = []
+                    for i in range(len(x[j])):
+                        x_1.append(np.interp(indices, indices_orig, x[j][i]))
+                    x[j] = x_1
+
         y_train_actuals = []
         y_train_preds = []
         y_test_actuals = []
@@ -220,9 +236,18 @@ if not args.singleOutput:#model_type == "multi" or model_type == "single_multi":
             y_val_preds.append([])
         for fold in range(len(data_parser.cal_folds)):
             [trn, val] = data_parser.k_fold(fold)
-            x_trn = [x[i] for i in trn]
-            x_val = [x[i] for i in val]
-            x_tst = [x[i] for i in data_parser.tst_indices]
+            if args.singleInput: 
+                x_trn = [x[i] for i in trn]
+                x_val = [x[i] for i in val]
+                x_tst = [x[i] for i in data_parser.tst_indices]
+            else:
+                x_trn = []
+                x_val = []
+                x_tst = []
+                for j in range(len(args.preprecessingTec)):
+                    x_trn.append([x[j][i] for i in trn])
+                    x_val.append([x[j][i] for i in val])
+                    x_tst.append([x[j][i] for i in data_parser.tst_indices])
             y_trn = []
             y_val = []
             y_tst = []
@@ -272,3 +297,5 @@ if not args.singleOutput:#model_type == "multi" or model_type == "single_multi":
         val_dataframe.to_csv(preproc_datetime+'/val_predictions.csv')
         metrics = pnd.DataFrame(metrics)
         metrics.to_csv(preproc_datetime+'/metrics.csv')
+        if not args.singleInput:
+            break
