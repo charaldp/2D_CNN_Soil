@@ -34,7 +34,7 @@ def parse_args():
     parser.add_argument('-vh','--vhRatio',type=float, help='Ratio of vertical to horizontal image aspect (diversion from [51, 83])',default=1)
     parser.add_argument('-opt','--optimizer',type=str, help='Optimizer used during training',default='Adam')
     parser.add_argument('-mod','--saveModel', help='Decide whether model will be saved at output directory',action='store_true')
-    parser.add_argument('-dl','--discardLearnCurves', help='Discard Learning Curve Plots', action='store_true')
+    parser.add_argument('-pl','--plotLearnCurves', help='Extract Learning Curve Plots', action='store_true')
 
     args = parser.parse_args()
     return args

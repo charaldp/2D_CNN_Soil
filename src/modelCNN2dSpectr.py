@@ -459,7 +459,7 @@ class SoilModel(object):
 			patience += 1
 			print("Reinitializing Model...")
 		
-		if not self.__initialization_options.discardLearnCurves:
+		if self.__initialization_options.plotLearnCurves:
 			plt.plot(history.history['loss'])
 			plt.plot(history.history['val_loss'])
 			plt.title('Global Model Loss')
@@ -556,7 +556,7 @@ class SoilModel(object):
 		plots.append('loss')
 		# plots.append('val_loss')
 		
-		if not self.__initialization_options.discardLearnCurves:
+		if self.__initialization_options.plotLearnCurves:
 			for name in plots:
 				plt.plot(history.history[name])
 				plt.plot(history.history['val_'+name])
