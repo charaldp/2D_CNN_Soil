@@ -155,6 +155,9 @@ class SoilModel(object):
 		else:
 			self.__denseLayersSizes = initialization_options.denseLayersSizes
 		self.__singleOutput = initialization_options.singleOutput
+		self.__singleInput = initialization_options.singleInput
+		self.__preprecessingTec = initialization_options.preprecessingTec
+		print('self.__preprecessingTec',len(self.__preprecessingTec))
 		input_shape = self.getInputShape(spectra_for_input_shape)
 		self.__input_shape = tuple([input_shape[0], input_shape[1], 1])
 		
@@ -178,7 +181,7 @@ class SoilModel(object):
 		mi = int(self.__v_to_h_ratio * 100 / (0.5 + self.__undersampling / 2))
 		nover = int(self.__v_to_h_ratio * 50 / (0.5 + self.__undersampling / 2))
 		window = signal.hann(M = mi)
-		[x, t, spec] = signal.spectrogram(x = np.array(spectra), fs = 1,window = window, nperseg = mi, noverlap = nover)
+		[x, t, spec] = signal.spectrogram(x = np.array(spectra if self.__singleInput else spectra[0]), fs = 1,window = window, nperseg = mi, noverlap = nover)
 		return spec.shape
 
 	def extractModelSummary(self):
@@ -208,25 +211,28 @@ class SoilModel(object):
 			# exit()
 		return x_spectrogram
 
-	def spectraToSpectrogramMulti(self, x_in_spectra, mode, v_to_h_ratio, input_shape, props):
+	def spectraToSpectrogramMulti(self, x_in_spectra, mode):
 		# Multiple input (if used)
 		if mode=='minus_1_1':
 			num = 25
 		elif mode=='one_zero':
 			num = 50
-		mi = int(v_to_h_ratio * 100 / (0.5 + self.__undersampling / 2))
-		nover = int(v_to_h_ratio * 50 / (0.5 + self.__undersampling / 2))
+		mi = int(self.__v_to_h_ratio * 100 / (0.5 + self.__undersampling / 2))
+		nover = int(self.__v_to_h_ratio * 50 / (0.5 + self.__undersampling / 2))
 		window = signal.hann(M = mi)
-		x_in_spectra = np.array(x_in_spectra)
-		x_spectrogram = np.empty(shape=(x_in_spectra.shape[0],input_shape[0],input_shape[1],1))
-		for i in range(x_in_spectra.shape[0]):
-			[x, t, spec] = signal.spectrogram(x = x_in_spectra[i], fs = 1,window = window, nperseg = mi, noverlap = nover)
-			# print(spec)
-			# a = pnd.DataFrame(spec)
-			# a.to_csv('../output/test.csv')
-			x_spectrogram[i] = (np.log(np.abs(spec.reshape(input_shape[0],input_shape[1], 1))) + num) / num
-			# exit()
-		return x_spectrogram
+		for j in range(len(x_in_spectra)):
+			x_in_spectra[j] = np.array(x_in_spectra[j])
+			x_spectrogram = np.empty(shape=(x_in_spectra[j].shape[0],self.__input_shape[0],self.__input_shape[1],len(x_in_spectra)))
+			x_spectrograms = []
+			for i in range(x_in_spectra[j].shape[0]):
+				[x, t, spec] = signal.spectrogram(x = x_in_spectra[j][i], fs = 1,window = window, nperseg = mi, noverlap = nover)
+				# print(spec)
+				# a = pnd.DataFrame(spec)
+				# a.to_csv('../output/test.csv')
+				x_spectrogram[i] = (np.log(np.abs(spec.reshape(self.__input_shape[0],self.__input_shape[1], 1))) + num) / num
+				# exit()
+			x_spectrograms.append(x_spectrogram)
+		return x_spectrograms
 
 	def extractSpectrogram(self, x_in_spectra, path, mode, v_to_h_ratio, input_shape ):
 		if mode=='minus_1_1':
@@ -383,7 +389,7 @@ class SoilModel(object):
 		# TODO: Multi input?
 
 		# Layer 1
-		input_layer = Input(shape=self.__input_shape)
+		input_layer = Input(shape=tuple([self.__input_shape[0], self.__input_shape[1], 1 if self.__singleInput else len(self.__preprecessingTec) ]))
 		'''
 		# Layer 2
 		cnn_common = convUnit(input_layer, 64, 3, True)
@@ -434,9 +440,16 @@ class SoilModel(object):
 		y_test = self.outputAtNormalRange(np.array(y_test), output_mode)
 		y_val = self.outputAtNormalRange(np.array(y_val), output_mode)
 
-		print(x_train_spec.shape)
-		print(np.amin(x_train_spec))
-		print(np.amax(x_train_spec))
+		if self.__singleInput:
+			print('Shape', x_train_spec.shape)
+			print('Min', np.amin(x_train_spec))
+			print('Max', np.amax(x_train_spec))
+		else:
+			for j in range(len(x_train_spec)):
+				print('Stats :', self.__preprecessingTec[j])
+				print('Shape', x_train_spec[j].shape)
+				print('Min', np.amin(x_train_spec[j]))
+				print('Max', np.amax(x_train_spec[j]))
 		
 		patience = 0
 		while patience < 5:
@@ -530,17 +543,30 @@ class SoilModel(object):
 		instances_val = len(y_val[0])
 		output_mode = 'statistic_minus_1_1'
 		input_mode = 'minus_1_1'
-		x_train_spec = self.spectraToSpectrogram(x_in_train, input_mode)
-		x_val_spec = self.spectraToSpectrogram(x_in_val, input_mode)
-		x_test_spec = self.spectraToSpectrogram(x_in_test, input_mode)
+		if self.__singleInput:
+			x_train_spec = self.spectraToSpectrogram(x_in_train, input_mode)
+			x_val_spec = self.spectraToSpectrogram(x_in_val, input_mode)
+			x_test_spec = self.spectraToSpectrogram(x_in_test, input_mode)
+		else:
+			x_train_spec = self.spectraToSpectrogramMulti(x_in_train, input_mode)
+			x_val_spec = self.spectraToSpectrogramMulti(x_in_val, input_mode)
+			x_test_spec = self.spectraToSpectrogramMulti(x_in_test, input_mode)
 		model = self.createModelMulti()
 
 		# Normalize output properties at range [-1, 1]
 		y_train_model = self.outputAtNormalRangeMulti(y_train, output_mode)
 		y_test_model = self.outputAtNormalRangeMulti(y_test, output_mode)
 		y_val_model = self.outputAtNormalRangeMulti(y_val, output_mode)
-		print(x_train_spec.shape)
-	
+		if self.__singleInput:
+			print('Shape', x_train_spec.shape)
+			print('Min', np.amin(x_train_spec))
+			print('Max', np.amax(x_train_spec))
+		else:
+			for j in range(len(x_train_spec)):
+				print('Stats :', self.__preprecessingTec[j])
+				print('Shape', x_train_spec[j].shape)
+				print('Min', np.amin(x_train_spec[j]))
+				print('Max', np.amax(x_train_spec[j]))
 		clbcks = []
 		clbcks.append(TrainingResetCallback())
 		# clbcks.append(ReduceLROnPlateau(min_lr=0.0001))
