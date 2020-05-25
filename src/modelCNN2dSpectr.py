@@ -154,6 +154,7 @@ class SoilModel(object):
 			self.__denseLayersSizes = [100] if initialization_options.singleOutput else [64]
 		else:
 			self.__denseLayersSizes = initialization_options.denseLayersSizes
+		self.__middleDenseLayersSizes = initialization_options.middleDenseLayersSizes
 		self.__singleOutput = initialization_options.singleOutput
 		self.__singleInput = initialization_options.singleInput
 		self.__preprecessingTec = initialization_options.preprecessingTec
@@ -389,27 +390,37 @@ class SoilModel(object):
 		# TODO: Multi input?
 
 		# Layer 1
-		input_layer = Input(shape=tuple([self.__input_shape[0], self.__input_shape[1], 1 if self.__singleInput else len(self.__preprecessingTec) ]))
-		'''
-		# Layer 2
-		cnn_common = convUnit(input_layer, 64, 3, True)
-		# Layer 3
-		cnn_common = convUnit(cnn_common, 128, 3, False)
-		# Layer 4
-		# Layer 5	
-		cnn_common = convUnit(cnn_common, 256, 3, True)
-		# Layer 6
-		cnn_common = convUnit(cnn_common, 512, 3, False)
-		'''
-		for index, layer_filters in enumerate(self.__layersFilters):
-			# Layer i
-			max_pooling = True if index in self.__maxPooling else False
-			cnn_common = self.convUnit( input_layer if index==0 else cnn_common, layer_filters, self.__kernelSize, max_pooling)
+		input_layers = []
+		input_layers_outputs = []
+		input_length = 1 if self.__singleInput else len(self.__preprecessingTec)
+		for j in range(input_length):
+			# input_layer = Input(shape=tuple([self.__input_shape[0], self.__input_shape[1], 1 if self.__singleInput else len(self.__preprecessingTec) ]))
+			input_layers.append(Input(shape=tuple([self.__input_shape[0], self.__input_shape[1], 1])))
+			'''
+			# Layer 2
+			cnn_common = convUnit(input_layer, 64, 3, True)
+			# Layer 3
+			cnn_common = convUnit(cnn_common, 128, 3, False)
+			# Layer 4
+			# Layer 5	
+			cnn_common = convUnit(cnn_common, 256, 3, True)
+			# Layer 6
+			cnn_common = convUnit(cnn_common, 512, 3, False)
+			'''
+			for index, layer_filters in enumerate(self.__layersFilters):
+				# Layer i
+				max_pooling = True if index in self.__maxPooling else False
+				cnn_common = self.convUnit( input_layers[j] if index==0 else cnn_common, layer_filters, self.__kernelSize, max_pooling)
+			mod = Model(inputs=input_layers[j], outputs=cnn_common)
+			input_layers_outputs.append(mod.output)
+		combined = concatenate(input_layers_outputs)
+		# for index, layer_size in enumerate(self.__middelDenseLayersSizes):
+		# 	()
 		# Split to multi
 		outputs = []
 		for out_name in self.__output_properties:
-			mult_layer = self.convUnit(cnn_common, 64, 1, False)
-			mult_layer = Flatten()(mult_layer)
+			mult_layer = self.convUnit(combined, 64, 1, False)
+			mult_layer = Flatten()(combined)
 			for layer_size in self.__denseLayersSizes:
 				mult_layer = Dense(layer_size, kernel_initializer=kernel_initializer, bias_initializer=bias_initializer)(mult_layer)
 				mult_layer = BatchNormalization()(mult_layer)
