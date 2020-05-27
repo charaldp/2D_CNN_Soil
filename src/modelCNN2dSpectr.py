@@ -221,10 +221,10 @@ class SoilModel(object):
 		mi = int(self.__v_to_h_ratio * 100 / (0.5 + self.__undersampling / 2))
 		nover = int(self.__v_to_h_ratio * 50 / (0.5 + self.__undersampling / 2))
 		window = signal.hann(M = mi)
+		x_spectrograms = []
 		for j in range(len(x_in_spectra)):
 			x_in_spectra[j] = np.array(x_in_spectra[j])
-			x_spectrogram = np.empty(shape=(x_in_spectra[j].shape[0],self.__input_shape[0],self.__input_shape[1],len(x_in_spectra)))
-			x_spectrograms = []
+			x_spectrogram = np.empty(shape=(x_in_spectra[j].shape[0],self.__input_shape[0],self.__input_shape[1], 1))
 			for i in range(x_in_spectra[j].shape[0]):
 				[x, t, spec] = signal.spectrogram(x = x_in_spectra[j][i], fs = 1,window = window, nperseg = mi, noverlap = nover)
 				# print(spec)
@@ -430,7 +430,7 @@ class SoilModel(object):
 			mult_layer = Dense(1, activation='linear', name=out_name, kernel_initializer=kernel_initializer, bias_initializer=bias_initializer)(mult_layer)
 			outputs.append(mult_layer)
 
-		model = Model(inputs=input_layer, outputs=outputs)
+		model = Model(inputs=input_layers, outputs=outputs)
 		model.compile(optimizer=optimizer, loss='mean_squared_error', metrics=['mse'])
 		if printDetails:
 			print(model.summary())
