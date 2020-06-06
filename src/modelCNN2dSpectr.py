@@ -319,114 +319,70 @@ class SoilModel(object):
 		constant_initializer = Constant(value=-0.01)
 		# kernel_initializer = constant_initializer
 		optimizer = Adam(lr=0.0005)
-		#create model
 		
-		input_shape = self.__input_shape
-		model = Sequential()
-		for index, layer_filters in enumerate(self.__layersFilters):
-			model.add(Conv2D(layer_filters, self.__kernelSize, input_shape=input_shape, padding='same', kernel_initializer=kernel_initializer, bias_initializer=bias_initializer))
-			model.add(BatchNormalization())
-			model.add(ReLU())
-			if index in self.__maxPooling:
-				model.add(MaxPooling2D(pool_size=(2, 2)))
-				input_shape = tuple([input_shape[0] / 2, input_shape[1] / 2, 1])
-		model.add(Flatten(input_shape=input_shape))
-		model.add(Dropout(0.5))
-		for layer_size in self.__denseLayersSizes:
-			model.add(Dense(layer_size, kernel_initializer=kernel_initializer, bias_initializer=bias_initializer))
-			model.add(BatchNormalization())
-			model.add(ReLU())
-		# Last Layer
-		model.add(Dense(1, activation='linear', kernel_initializer=kernel_initializer, bias_initializer=bias_initializer))
-		model.compile(optimizer=optimizer, loss='mean_squared_error', metrics=['mse'])
-		
+		input_layers = []
+		input_layers_outputs = []
+		input_length = 1 if self.__singleInput else len(self.__preprecessingTec)
+		for j in range(input_length):
+			input_layers.append(Input(shape=tuple([self.__input_shape[0], self.__input_shape[1], 1])))
+			for index, layer_filters in enumerate(self.__layersFilters):
+				# Layer i
+				max_pooling = True if index in self.__maxPooling else False
+				cnn_common = self.convUnit( input_layers[j] if index==0 else cnn_common, layer_filters, self.__kernelSize, max_pooling)
+			if not self.__singleInput:
+				mod = Model(inputs=input_layers[j], outputs=cnn_common)
+				input_layers_outputs.append(mod.output)
+		if not self.__singleInput:
+			combined = concatenate(input_layers_outputs)
 
-		'''
-		model = Sequential()
-		# Layer 1
-		model.add(Conv2D(64, kernel_size=3, padding='same', input_shape=input_shape_1, kernel_initializer=kernel_initializer, bias_initializer=bias_initializer))
-		model.add(BatchNormalization())
-		model.add(ReLU())
-		# Layer 2
-		model.add(MaxPooling2D(pool_size=(2, 2)))
-		# Layer 3
-		model.add(Conv2D(128, kernel_size=3, padding='same', input_shape=input_shape_2, kernel_initializer=kernel_initializer, bias_initializer=bias_initializer))
-		model.add(BatchNormalization())
-		model.add(ReLU())
-		# Layer 4
-		model.add(Conv2D(256, kernel_size=3, padding='same', input_shape=input_shape_2, kernel_initializer=kernel_initializer, bias_initializer=bias_initializer))
-		model.add(BatchNormalization())
-		model.add(ReLU())
-		# Layer 5	
-		model.add(MaxPooling2D(pool_size=(2, 2)))
-		# Layer 6
-		model.add(Conv2D(512, kernel_size=3, padding='same', input_shape=input_shape_3, kernel_initializer=kernel_initializer, bias_initializer=bias_initializer))
-		model.add(BatchNormalization())
-		model.add(ReLU())
-		# Layer 7
-		model.add(Conv2D(64, kernel_size=3, padding='same', input_shape=input_shape_3, kernel_initializer=kernel_initializer, bias_initializer=bias_initializer))
-		model.add(BatchNormalization())
-		model.add(ReLU())
-		# Layer 8
-		model.add(Flatten(input_shape=model.output_shape[1:]))
-		model.add(Dropout(0.5))
-		model.add(Dense(100, kernel_initializer=kernel_initializer, bias_initializer=bias_initializer))
-		model.add(BatchNormalization())
-		# model.add(Dense(10))
-		model.add(ReLU())
-		# Layer 9
-		model.add(Dense(1, activation='linear', kernel_initializer=kernel_initializer, bias_initializer=bias_initializer))
+		cnn_common = Flatten()(cnn_common if self.__singleInput else combined)
+		cnn_common = Dropout(0.5)(cnn_common)
+
+		for layer_size in self.__denseLayersSizes:
+			cnn_common = Dense(layer_size, kernel_initializer=kernel_initializer, bias_initializer=bias_initializer)(cnn_common)
+			cnn_common = BatchNormalization()(cnn_common)
+			cnn_common = ReLU()(cnn_common)
+		cnn_common = Dense(1, activation='linear', kernel_initializer=kernel_initializer, bias_initializer=bias_initializer)(cnn_common)
+
+		model = Model(inputs=input_layers, outputs=[cnn_common])
 		model.compile(optimizer=optimizer, loss='mean_squared_error', metrics=['mse'])
-		'''
+		
 		if printDetails:
 			print(model.summary())
 		return model
 
 	def createModelMulti(self, printDetails = True):
-		# global prop_count
 		kernel_initializer = 'random_uniform'
 		bias_initializer = 'zeros'
 		optimizer = Adam(lr=0.0001)
-		# TODO: Multi input?
 
 		# Layer 1
 		input_layers = []
 		input_layers_outputs = []
 		input_length = 1 if self.__singleInput else len(self.__preprecessingTec)
 		for j in range(input_length):
-			# input_layer = Input(shape=tuple([self.__input_shape[0], self.__input_shape[1], 1 if self.__singleInput else len(self.__preprecessingTec) ]))
 			input_layers.append(Input(shape=tuple([self.__input_shape[0], self.__input_shape[1], 1])))
-			'''
-			# Layer 2
-			cnn_common = convUnit(input_layer, 64, 3, True)
-			# Layer 3
-			cnn_common = convUnit(cnn_common, 128, 3, False)
-			# Layer 4
-			# Layer 5	
-			cnn_common = convUnit(cnn_common, 256, 3, True)
-			# Layer 6
-			cnn_common = convUnit(cnn_common, 512, 3, False)
-			'''
 			for index, layer_filters in enumerate(self.__layersFilters):
 				# Layer i
 				max_pooling = True if index in self.__maxPooling else False
 				cnn_common = self.convUnit( input_layers[j] if index==0 else cnn_common, layer_filters, self.__kernelSize, max_pooling)
-			mod = Model(inputs=input_layers[j], outputs=cnn_common)
-			input_layers_outputs.append(mod.output)
-		combined = concatenate(input_layers_outputs)
+			if not self.__singleInput:
+				mod = Model(inputs=input_layers[j], outputs=cnn_common)
+				input_layers_outputs.append(mod.output)
+		if not self.__singleInput:
+			combined = concatenate(input_layers_outputs)
 		# for index, layer_size in enumerate(self.__middelDenseLayersSizes):
 		# 	()
 		# Split to multi
 		outputs = []
 		for out_name in self.__output_properties:
-			mult_layer = self.convUnit(combined, 64, 1, False)
-			mult_layer = Flatten()(combined)
+			mult_layer = self.convUnit(cnn_common if self.__singleInput else combined, 64, 1, False)
+			mult_layer = Flatten()(mult_layer)
+			mult_layer = Dropout(0.5)(mult_layer)
 			for layer_size in self.__denseLayersSizes:
 				mult_layer = Dense(layer_size, kernel_initializer=kernel_initializer, bias_initializer=bias_initializer)(mult_layer)
 				mult_layer = BatchNormalization()(mult_layer)
 				mult_layer = ReLU()(mult_layer)
-			# model.add(Dropout(0.5))
-			# Last Layer
 			mult_layer = Dense(1, activation='linear', name=out_name, kernel_initializer=kernel_initializer, bias_initializer=bias_initializer)(mult_layer)
 			outputs.append(mult_layer)
 
@@ -441,9 +397,14 @@ class SoilModel(object):
 		output_mode = 'statistic_minus_1_1'
 		input_mode = 'minus_1_1'
 
-		x_train_spec = self.spectraToSpectrogram(x_in_train, input_mode)
-		x_val_spec = self.spectraToSpectrogram(x_in_val, input_mode)
-		x_test_spec = self.spectraToSpectrogram(x_in_test, input_mode)
+		if self.__singleInput:
+			x_train_spec = self.spectraToSpectrogram(x_in_train, input_mode)
+			x_val_spec = self.spectraToSpectrogram(x_in_val, input_mode)
+			x_test_spec = self.spectraToSpectrogram(x_in_test, input_mode)
+		else:
+			x_train_spec = self.spectraToSpectrogramMulti(x_in_train, input_mode)
+			x_val_spec = self.spectraToSpectrogramMulti(x_in_val, input_mode)
+			x_test_spec = self.spectraToSpectrogramMulti(x_in_test, input_mode)
 		# extractSpectrogram(x_in_train, self.__fold_path, input_mode, v_to_h_ratio, input_shape)
 
 		# Normalize output properties at range [-1, 1]

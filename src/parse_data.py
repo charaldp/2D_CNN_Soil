@@ -92,9 +92,10 @@ if args.singleOutput:# == "single" or model_type == "single_multi":
     if not os.path.exists(single_path):
         os.mkdir(single_path)
     for pre_process in args.preprecessingTec:
-        preproc_datetime = os.path.join(single_path, pre_process[0:len(pre_process) - 4])
+        preproc_datetime = os.path.join(single_path, pre_process[0:len(pre_process) - 4]) if args.singleInput else os.path.join(single_path, 'multi_input')
         if not os.path.exists(preproc_datetime):
             os.mkdir(preproc_datetime)
+        
         print("Preproc "+pre_process)
         metrics = {}
         train_dataframe = {}
@@ -104,7 +105,16 @@ if args.singleOutput:# == "single" or model_type == "single_multi":
             print("Prop "+out_name)
         
             data_parser.input_spectra = os.path.join(FOLDER_WITH_SPECTRA, pre_process)
-            x = data_parser.x()
+            if args.singleInput:
+                print("Preproc "+pre_process)
+                data_parser.input_spectra = os.path.join(FOLDER_WITH_SPECTRA, pre_process)
+                x = data_parser.x()
+            else:
+                x = []
+                for pre_proc in args.preprecessingTec:
+                    print("Preproc "+pre_proc)
+                    data_parser.input_spectra = os.path.join(FOLDER_WITH_SPECTRA, pre_proc)
+                    x.append(data_parser.x())
             y = data_parser.y(out_col)
             standarizer = modelCNN2dSpectr.OutputStandarizer({out_name: out_col}, [y])
             print(len(x))
@@ -112,15 +122,23 @@ if args.singleOutput:# == "single" or model_type == "single_multi":
             if args.undersampling != 1:
                 indices = []
                 i = 0
-                indices_orig = range(len(x[0]))
-                while i < len(x[0]):
+                length = len(x[0] if args.singleInput else x[0][0])
+                indices_orig = range(length)
+                while i < length:
                     indices.append(i)
                     i += args.undersampling
-                       
-                x_1 = []
-                for i in range(len(x)):
-                    x_1.append(np.interp(indices, indices_orig, x[i]))
-                x = x_1
+
+                if args.singleInput:
+                    x_1 = []
+                    for i in range(len(x)):
+                        x_1.append(np.interp(indices, indices_orig, x[i]))
+                    x = x_1
+                else:
+                    for j in range(len(args.preprecessingTec)):
+                        x_1 = []
+                        for i in range(len(x[j])):
+                            x_1.append(np.interp(indices, indices_orig, x[j][i]))
+                        x[j] = x_1
             y_train_actuals = []
             y_train_preds = []
             y_test_actuals = []
@@ -130,11 +148,21 @@ if args.singleOutput:# == "single" or model_type == "single_multi":
             for fold in range(len(data_parser.cal_folds)): # Number of internal folds
                 print("==========| FOLD "+str(fold+1)+", on "+out_name+" |==========")
                 [trn, val] = data_parser.k_fold(fold)
-                x_trn = [x[i] for i in trn]
+                if args.singleInput: 
+                    x_trn = [x[i] for i in trn]
+                    x_val = [x[i] for i in val]
+                    x_tst = [x[i] for i in data_parser.tst_indices]
+                else:
+                    x_trn = []
+                    x_val = []
+                    x_tst = []
+                    for j in range(len(args.preprecessingTec)):
+                        x_trn.append([x[j][i] for i in trn])
+                        x_val.append([x[j][i] for i in val])
+                        x_tst.append([x[j][i] for i in data_parser.tst_indices])
+
                 y_trn = [y[i] for i in trn]
-                x_val = [x[i] for i in val]
                 y_val = [y[i] for i in val]
-                x_tst = [x[i] for i in data_parser.tst_indices]
                 y_tst = [y[i] for i in data_parser.tst_indices]
                 path_fold = os.path.join(preproc_datetime, str(fold))
                 if not os.path.exists(path_fold):
