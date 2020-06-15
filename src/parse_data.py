@@ -14,7 +14,7 @@ from modelCNN2dSpectr import OutputStandarizer
 from datetime import datetime
 
 def parse_args():
-    parser = argp.ArgumentParser(description='Convolutional Neural Network, multiple Output')
+    parser = argp.ArgumentParser(description='2D Convolutional Neural Network')
     # Required
     parser.add_argument('-n','--name',type=str, help='A specific name for the test of the batch',default='')
     parser.add_argument('-si','--singleInput', help='Single Input',action='store_true')

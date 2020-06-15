@@ -7,7 +7,7 @@ if tensorflow_ver[0] == '2':
 	from tensorflow.keras.activations import *
 	from tensorflow.keras.initializers import *
 	from tensorflow.keras.models import Sequential,Model,load_model
-	from tensorflow.keras.optimizers import Adam,Adamax
+	from tensorflow.keras.optimizers import Adam,Adamax,Nadam
 	from tensorflow.keras.callbacks import Callback, LambdaCallback, ReduceLROnPlateau, EarlyStopping, ModelCheckpoint
 elif tensorflow_ver[0] == '1':
 	# Tensorflow 1.X.X
@@ -16,7 +16,7 @@ elif tensorflow_ver[0] == '1':
 	from keras.layers import *
 	from keras.activations import *
 	from keras.models import Sequential,Model,Input,load_model
-	from keras.optimizers import Adam,Adamax
+	from keras.optimizers import Adam,Adamax,Nadam
 	from keras.callbacks import Callback, LambdaCallback, ReduceLROnPlateau, EarlyStopping, ModelCheckpoint
 	from keras.initializers import *
 	from keras import backend as K
@@ -354,7 +354,7 @@ class SoilModel(object):
 	def createModelMulti(self, printDetails = True):
 		kernel_initializer = 'random_uniform'
 		bias_initializer = 'zeros'
-		optimizer = Adam(lr=0.0001)
+		optimizer = Nadam(lr=0.0001)
 
 		# Layer 1
 		input_layers = []
