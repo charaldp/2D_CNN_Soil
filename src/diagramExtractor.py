@@ -5,6 +5,7 @@ import matplotlib.pyplot as plt
 import matplotlib as mpl
 import pandas as pnd
 import argparse as argp
+import seaborn as sns
 from datetime import datetime
 
 mpl.rcParams.update({'font.size': 6})
@@ -124,6 +125,7 @@ if args.mode == 'boxplots':
             data.append(errors_val)
             data.append(errors_train)
             pos = center_offset*j
+            # ax = sns.boxplot(x="day", y="total_bill", hue="smoker", data=tips, palette="Set3")
             bplots.append(ax.boxplot(data, positions=[pos+1, pos+2, pos+3], showfliers=False, patch_artist=True, widths=0.6))
         
 

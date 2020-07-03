@@ -11,9 +11,37 @@
 Η απόπειρα πρόβλεψης πολλαπλών ιδιοτήτων με τη χρήση ενός μοντέλου, απαιτεί μια πολυπλοκότερη διαδικασία εκπαίδευσης λόγω του μεγέθους του νέου μοντέλου. Το αποτέλεσμα ωστόσο είναι ικανοποιητικό. Παρόλο που παρατηρείται μια ελαφρώς χειρότερη επίδοση για όλες τις εξόδους, η προβλέψεις του μοντέλου είναι κοντά σε αυτές των μοντέλων πρόβλεψης μιας ιδιότητας εδάφους, πράγμα που δείχνει πως η διαδικασία εκπαίδευσης ενός ξεχωριστού μοντέλου για κάθε ιδιότητα είναι σπάταλη.
 
 \begin{figure}[htbp]
-  \centering
-  \includesvg{../PICS/OC.svg}
-  \caption{Σύγκριση μοντέλων για τον οργανικό άνθρακα με βάση την μετρική \tl{RMSE}}
+    \begin{subfigure}{0.5\textwidth}
+        \includesvg[width=1.1\linewidth]{OC}
+        \caption{Caption 1}
+        \label{fig:subim1}
+    \end{subfigure}
+    \begin{subfigure}{0.5\textwidth}
+        \includesvg[width=1.1\linewidth]{CEC}
+        \caption{Caption 2}
+        \label{fig:subim2}
+    \end{subfigure}
+    \begin{subfigure}{0.5\textwidth}
+        \includesvg[width=1.1\linewidth]{Clay}
+        \caption{Caption 1}
+        \label{fig:subim3}
+    \end{subfigure}
+    \begin{subfigure}{0.5\textwidth}
+        \includesvg[width=1.1\linewidth]{Sand}
+        \caption{Caption 1}
+        \label{fig:subim4}
+    \end{subfigure}
+    \begin{subfigure}{0.5\textwidth}
+        \includesvg[width=1.1\linewidth]{pH}
+        \caption{Caption 1}
+        \label{fig:subim5}
+    \end{subfigure}
+    \begin{subfigure}{0.5\textwidth}
+        \includesvg[width=1.1\linewidth]{N}
+        \caption{Caption 1}
+        \label{fig:subim6}
+    \end{subfigure}
+    \caption{Σύγκριση μοντέλων για τον οργανικό άνθρακα με βάση την μετρική \tl{RMSE}}
 \end{figure}
 
 \section{Επιρροή του λόγου οριζόντιας προς κατακόρυφης διάστασης --- ανώτατο όριο αύξησης}
