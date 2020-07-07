@@ -141,7 +141,7 @@ if args.mode == 'boxplots':
         ax.set_xticklabels(labels)
         # figManager = plt.get_current_fig_manager()
         # figManager.window.showMaximized()
-        plt.savefig(path_datetime+'/'+prop+'.svg',format='svg', dpi=1000)
+        plt.savefig(path_datetime+'/'+prop+'.svg',format='svg', dpi=1000, bbox_inches='tight')
         plt.close()
          
 

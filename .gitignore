@@ -2,7 +2,12 @@ __pycache__/
 output/
 dataset/
 *.py[cod]
-.aux
-.log
-.gz
-.toc
+*.aux
+*.log
+*.gz
+*.toc
+thesis/DOCUMENT/cover.aux
+thesis/DOCUMENT/main.aux
+thesis/DOCUMENT/cover.aux
+thesis/DOCUMENT/main.log
+thesis/DOCUMENT/main.toc
