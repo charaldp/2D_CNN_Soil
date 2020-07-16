@@ -52,9 +52,13 @@ class OutputStandarizer(object):
 		for prop_name, col in properties.items():
 			self.statistics[prop_name] = {}
 			self.statistics[prop_name]['min'] = np.min(output[j])
+			self.statistics[prop_name]['Q25'] = np.percentile(output[j], 25)
+			self.statistics[prop_name]['Q50'] = np.percentile(output[j], 50)
+			self.statistics[prop_name]['Q75'] = np.percentile(output[j], 75)
 			self.statistics[prop_name]['max'] = np.max(output[j])
 			self.statistics[prop_name]['mean'] = np.mean(output[j])
 			self.statistics[prop_name]['std'] = np.std(output[j])
+			self.statistics[prop_name]['skew'] = scipy.stats.skew(output[j])
 			j += 1
 
 	def standarize(self, output):
