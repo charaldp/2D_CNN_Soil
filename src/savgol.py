@@ -67,13 +67,24 @@ if args.mode == 'extract_plot':
 		# columns[i] = str(columns[i])
 	# columns.insert(0, 'ID')
 	# index = pnd.date_range("1 1 2000")
-	dtfr = pnd.DataFrame(data_array, columns=columns)
-	ax = sns.lineplot(data=dtfr.transpose())
+
+	# columns = {'Wavelength': columns}
+	dtfr = pnd.DataFrame(data_array, columns=columns).transpose()
+	# dtfr.insert(loc=0, column='Wavelength', value=columns)
+	
+	# dtfr
+	# print(dtfr)
+	# dtfr.rename({'ID': 'Wavelegth'})
+	'''x='Wavelength (nm)', y='Reflectance', '''
+	ax = sns.lineplot(data=dtfr, legend=False)
 	# for ind, label in enumerate(plot_.get_xticklabels()):
 	# 	if ind % 10 == 0:  # every 10th label is kept
 	# 		label.set_visible(True)
 	# 	else:
 	# 		label.set_visible(False)
+	plt.xlabel('Wavelength (nm)', fontsize=18)
+	plt.ylabel('Reflectance', fontsize=18)
+	plt.savefig('Reflactances.svg', bbox_inches='tight')
 	plt.show()
 	exit()
 # for test_index in range(1,1000, 3):
