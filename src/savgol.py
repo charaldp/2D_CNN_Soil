@@ -5,8 +5,12 @@ from scipy import signal
 import matplotlib.pyplot as plt
 import seaborn as sns
 import argparse as argp
+import json
 
-
+def get_JSON_data(file_in):
+		with open(file_in) as data_file:
+			data = json.load(data_file)
+		return data
 
 def parse_args():
 	parser = argp.ArgumentParser(description='2D Convolutional Neural Network')
@@ -14,13 +18,18 @@ def parse_args():
 	parser.add_argument('-li','--readLines', type=int, help='Read lines for the input spectra file', nargs='+', default=[-1])
 	parser.add_argument('-us','--undersampling', type=float, help='Undersampling to apply at input spcetra',default=1.0)
 	parser.add_argument('-md','--mode', type=str, help='Undersampling to apply at input spcetra',default='extract_abs')
+	parser.add_argument('-org','--readOrganic', help='Read organic soil samples',action='store_true')
 	args = parser.parse_args()
 	return args
 
 args = parse_args()
 print(args)
 print('Reading CSV...')
-if args.readLines != -1:
+if args.readOrganic:
+	j_data = get_JSON_data('C:\diploma_thesis\py\\2D_CNN_Soilll\dataset\Mineral_Absorbances.json')
+	# TODO: Use ID of dataset
+	data = pnd.read_csv(args.inputSpectra, low_memory=False, skiprows=j_data["read_lines"])
+elif args.readLines != -1:
 	data = pnd.read_csv(args.inputSpectra, low_memory=False, skiprows=lambda x: x not in args.readLines)
 else:
 	data = pnd.read_csv(args.inputSpectra, low_memory=False)
@@ -84,6 +93,8 @@ if args.mode == 'extract_plot':
 	# 		label.set_visible(False)
 	plt.xlabel('Wavelength (nm)', fontsize=18)
 	plt.ylabel('Reflectance', fontsize=18)
+	ax.tick_params(axis='x', labelsize=18)
+	ax.tick_params(axis='y', labelsize=18)
 	plt.savefig('Reflactances.svg', bbox_inches='tight')
 	plt.show()
 	exit()
