@@ -106,6 +106,10 @@ def coeff_determination(y_true, y_pred):
 	SS_tot = K.sum(K.square( y_true - K.mean(y_true) ) )
 	return ( 1 - SS_res/(SS_tot + K.epsilon()) )
 
+def root_mean_squared_error(y_true, y_pred):
+	from keras import backend as K
+	return K.sqrt(K.mean(K.square(y_pred - y_true))) 
+
 def lucas_soil_properties():
 	return {'min' : {'OC':  0,'CEC': 0,'Clay': 0,'Sand': 1,'pH': 3.21,'N': 0
 	 	},'max' : {'OC':  586.8,'CEC': 234,'Clay': 79,'Sand': 99,'pH': 10.08,'N': 38.6
@@ -367,7 +371,8 @@ class SoilModel(object):
 		cnn_common = Dense(1, activation='linear', kernel_initializer=kernel_initializer, bias_initializer=bias_initializer)(cnn_common)
 
 		model = Model(inputs=input_layers, outputs=[cnn_common])
-		model.compile(optimizer=optimizer, loss='mean_squared_error', metrics=['mse'])
+		# model.compile(optimizer=optimizer, loss='meanquared_error', metrics=['mse'])
+		model.compile(optimizer=optimizer, loss=root_mean_squared_error, metrics=['rmse'])
 		
 		if printDetails:
 			print(model.summary())
@@ -409,7 +414,8 @@ class SoilModel(object):
 			outputs.append(mult_layer)
 
 		model = Model(inputs=input_layers, outputs=outputs)
-		model.compile(optimizer=optimizer, loss='mean_squared_error', metrics=['mse'])
+		# model.compile(optimizer=optimizer, loss='mean_squared_error', metrics=['mse'])
+		model.compile(optimizer=optimizer, loss=root_mean_squared_error, metrics=['rmse'])
 		if printDetails:
 			print(model.summary())
 		return model 
