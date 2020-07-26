@@ -6,6 +6,7 @@ import matplotlib.pyplot as plt
 import seaborn as sns
 import argparse as argp
 import json
+import math
 
 def get_JSON_data(file_in):
 		with open(file_in) as data_file:
@@ -28,13 +29,39 @@ print('Reading CSV...')
 if args.readOrganic:
 	j_data = get_JSON_data('C:\diploma_thesis\py\\2D_CNN_Soilll\dataset\Mineral_Absorbances.json')
 	# TODO: Use ID of dataset
-	data = pnd.read_csv(args.inputSpectra, low_memory=False, skiprows=j_data["read_lines"])
+	# data = pnd.read_csv(args.inputSpectra, low_memory=False, skiprows=j_data["read_lines"])
+	# print([chunk['ID'] for chunk in iter_csv])
+	# iter_csv = pnd.read_csv(args.inputSpectra, low_memory=False, iterator=True, usecols=range(0,4201), chunksize=1000)
+	# data = pnd.concat([chunk[chunk['ID'][1] not in j_data["read_lines"]] for chunk in iter_csv])
+	# print(j_data["read_lines"], len(j_data["read_lines"]))
+	notReadLines = j_data["read_lines"]
+	notReadLines.pop(0)
+	print(notReadLines)
+	for k in range(len(notReadLines)):
+		notReadLines[k] += 1
+	print(notReadLines)
+	'''Indices for a json of Organic Absorbances'''
+	readLines = []
+	for k in range(0, 19039):
+		if k not in notReadLines:
+			readLines.append(k)
+	print(len(readLines))
+	data = pnd.read_csv(args.inputSpectra, low_memory=False, skiprows=notReadLines)
+	data = data[2:7]
+	# data_y = pnd.read_csv('..\dataset\properties.csv', low_memory=False, skiprows=notReadLines)
+	iter_csv = pnd.read_csv('..\dataset\properties.csv', low_memory=False, iterator=True, chunksize=1000)
+	# indices = [chunk['mineral'] == 'organic' for chunk in iter_csv]
+	# for prop in indices:
+	# 	print(prop['mineral'])
+	# readLines = range(19038)[indices]
+	# print(readLines)
+	data_y = pnd.concat([chunk[chunk['mineral'] == 'organic'] for chunk in iter_csv])
+	print(data_y)
 elif args.readLines != -1:
 	data = pnd.read_csv(args.inputSpectra, low_memory=False, skiprows=lambda x: x not in args.readLines)
 else:
 	data = pnd.read_csv(args.inputSpectra, low_memory=False)
 print(data)
-
 # data2 = pnd.read_csv('./Absorbances_SG1_reduced.csv', low_memory=False)
 # data = pnd.read_csv('./reflectances.csv', nrows=1000)
 # data2 = pnd.read_csv('./Absorbances_SG1_reduced.csv', nrows=10)
@@ -47,7 +74,7 @@ data_array = data.values
 # data_abs_array = data_abs.values.tolist()
 print('Converting to np list...')
 data_array = data_array.tolist()
-print('Extracting savgol filter values...')
+print('Extracting plot values...')
 data = None
 if args.mode == 'extract_plot':
 	for i in range(len(data_array)):
@@ -77,13 +104,13 @@ if args.mode == 'extract_plot':
 	# columns.insert(0, 'ID')
 	# index = pnd.date_range("1 1 2000")
 
-	# columns = {'Wavelength': columns}
+	# columns  & columns}
 	dtfr = pnd.DataFrame(data_array, columns=columns).transpose()
 	# dtfr.insert(loc=0, column='Wavelength', value=columns)
 	
 	# dtfr
 	# print(dtfr)
-	# dtfr.rename({'ID': 'Wavelegth'})
+	# dtfr. & 'Wavelegth'})
 	'''x='Wavelength (nm)', y='Reflectance', '''
 	ax = sns.lineplot(data=dtfr, legend=False)
 	# for ind, label in enumerate(plot_.get_xticklabels()):

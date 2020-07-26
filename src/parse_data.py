@@ -26,13 +26,14 @@ def parse_args():
     parser.add_argument('-dn','--denseLayersSizes', type=int, help='Size of the last dense layers', nargs='+', default=[0])
     parser.add_argument('-prt','--preprecessingTec', type=str, help='Preprocessing techniques for input spectra', nargs='+', default=["reflectances.csv", "absorbances_sg1.csv"])
     parser.add_argument('-is','--inputSpectra', type=str, help='Input Spectra instances json to use', default='Mineral_Absorbances')
-    # OptionalMineral_Absorbances
+    # Optional
     parser.add_argument('-k','--kernelSize',type=int, help='Select kernel size',default=3)
     parser.add_argument('-b','--batchSize',type=int, help='Select batch size',default=24)
     parser.add_argument('-e','--epochs',type=int, help='Number of epochs',default=100)
     parser.add_argument('-fl','--folds',type=int, help='Number of folds',default=5)
     parser.add_argument('-us','--undersampling',type=float, help='Undersampling factor (greater or equal to 1)',default=1)
     parser.add_argument('-vh','--vhRatio',type=float, help='Ratio of vertical to horizontal image aspect (diversion from [51, 83])',default=1)
+    parser.add_argument('-wt','--windowType',type=str, help='Window type used for spectrogram extraction',default='hann')
     parser.add_argument('-opt','--optimizer',type=str, help='Optimizer used during training',default='Adam')
     parser.add_argument('-mod','--saveModel', help='Decide whether model will be saved at output directory',action='store_true')
     parser.add_argument('-pl','--plotLearnCurves', help='Extract Learning Curve Plots', action='store_true')

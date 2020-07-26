@@ -29,6 +29,7 @@ import matplotlib as mpl
 import pandas as pnd
 from time import time
 import contextlib
+import seaborn as sns
 
 @contextlib.contextmanager
 def redirect_stdout(target):
@@ -148,6 +149,7 @@ class SoilModel(object):
 
 		self.__epochs = initialization_options.epochs
 		self.__v_to_h_ratio = initialization_options.vhRatio
+		self.__windowType = initialization_options.windowType
 		self.__undersampling = initialization_options.undersampling
 		self.__batch_size = initialization_options.batchSize
 		self.__kernelSize = initialization_options.kernelSize
@@ -195,6 +197,18 @@ class SoilModel(object):
 				with open(self.__fold_path+'/model_summary.txt', 'w') as f:
 					with redirect_stdout(f):
 						model.summary()
+	def getWindow(self, mi):
+		if self.__windowType=='hann':
+			window = signal.hann(M = mi)
+		elif self.__windowType=='keiser':
+			window = np.kaiser(M = mi, beta=4)
+		elif self.__windowType=='hamming':
+			window = np.hamming(M = mi)
+		elif self.__windowType=='exponential':
+			window = signal.exponential(M = mi)# tau=tade
+		else:
+			window = window = signal.hann(M = mi)
+		return window
 
 	def spectraToSpectrogram(self, x_in_spectra, mode):
 		if mode=='minus_1_1':
@@ -204,7 +218,9 @@ class SoilModel(object):
 		mi = int(self.__v_to_h_ratio * 100 / (0.5 + self.__undersampling / 2))
 		nover = int(self.__v_to_h_ratio * 50 / (0.5 + self.__undersampling / 2))
 		print(mi, nover)
-		window = signal.hann(M = mi)
+		window = self.getWindow(mi)
+		# sns.lineplot(window)
+		# plt.show()
 		x_in_spectra = np.array(x_in_spectra)
 		x_spectrogram = np.empty(shape=(x_in_spectra.shape[0],self.__input_shape[0],self.__input_shape[1],1))
 		for i in range(x_in_spectra.shape[0]):
@@ -224,7 +240,9 @@ class SoilModel(object):
 			num = 50
 		mi = int(self.__v_to_h_ratio * 100 / (0.5 + self.__undersampling / 2))
 		nover = int(self.__v_to_h_ratio * 50 / (0.5 + self.__undersampling / 2))
-		window = signal.hann(M = mi)
+		window = self.getWindow(mi)
+		# sns.lineplot(window)
+		# plt.show()
 		x_spectrograms = []
 		for j in range(len(x_in_spectra)):
 			x_in_spectra[j] = np.array(x_in_spectra[j])
@@ -244,9 +262,9 @@ class SoilModel(object):
 			num = 25
 		elif mode=='one_zero':
 			num = 50
-		mi = int(v_to_h_ratio * 100)
-		nover = int(v_to_h_ratio * 50)
-		window = signal.hann(M = mi)
+		mi = int(self.__v_to_h_ratio * 100 / (0.5 + self.__undersampling / 2))
+		nover = int(self.__v_to_h_ratio * 50 / (0.5 + self.__undersampling / 2))
+		window = self.getWindow(mi)
 		x_in_spectra = np.array(x_in_spectra)
 		x_spectrogram = np.empty(shape=(x_in_spectra.shape[0],input_shape[0],input_shape[1],1))
 		i = 0
