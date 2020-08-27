@@ -7,7 +7,7 @@ if tensorflow_ver[0] == '2':
 	from tensorflow.keras.activations import *
 	from tensorflow.keras.initializers import *
 	from tensorflow.keras.models import Sequential,Model,load_model
-	from tensorflow.keras.optimizers import Adam,Adamax,Nadam
+	from tensorflow.keras.optimizers import Adam,Adamax,Nadam,RMSprop
 	from tensorflow.keras.callbacks import Callback, LambdaCallback, ReduceLROnPlateau, EarlyStopping, ModelCheckpoint
 elif tensorflow_ver[0] == '1':
 	# Tensorflow 1.X.X
@@ -16,7 +16,7 @@ elif tensorflow_ver[0] == '1':
 	from keras.layers import *
 	from keras.activations import *
 	from keras.models import Sequential,Model,Input,load_model
-	from keras.optimizers import Adam,Adamax,Nadam
+	from keras.optimizers import Adam,Adamax,Nadam,RMSprop
 	from keras.callbacks import Callback, LambdaCallback, ReduceLROnPlateau, EarlyStopping, ModelCheckpoint
 	from keras.initializers import *
 	from keras import backend as K
@@ -188,9 +188,15 @@ class SoilModel(object):
 	def trainModel(self):
 		self.model.fit()
 
+	def getM(self):
+		return int(self.__v_to_h_ratio * 100 / (0.5 + self.__undersampling / 2))
+
+	def getNover(self):
+		return int(self.__v_to_h_ratio * 50 / (0.5 + self.__undersampling / 2))
+
 	def getInputShape(self, spectra):
-		mi = int(self.__v_to_h_ratio * 100 / (0.5 + self.__undersampling / 2))
-		nover = int(self.__v_to_h_ratio * 50 / (0.5 + self.__undersampling / 2))
+		mi = self.getM()
+		nover = self.getNover()
 		window = signal.hann(M = mi)
 		[x, t, spec] = signal.spectrogram(x = np.array(spectra if self.__singleInput else spectra[0]), fs = 1,window = window, nperseg = mi, noverlap = nover)
 		return spec.shape
@@ -201,7 +207,8 @@ class SoilModel(object):
 				with open(self.__fold_path+'/model_summary.txt', 'w') as f:
 					with redirect_stdout(f):
 						model.summary()
-	def getWindow(self, mi):
+	def getWindow(self):
+		mi = self.getM()
 		if self.__windowType=='hann':
 			window = signal.hann(M = mi)
 		elif self.__windowType=='keiser':
@@ -209,7 +216,7 @@ class SoilModel(object):
 		elif self.__windowType=='hamming':
 			window = np.hamming(M = mi)
 		elif self.__windowType=='exponential':
-			window = signal.exponential(M = mi)# tau=tade
+			window = signal.exponential(M = mi, tau=2)
 		else:
 			window = window = signal.hann(M = mi)
 		return window
@@ -219,11 +226,11 @@ class SoilModel(object):
 			num = 25
 		elif mode=='one_zero':
 			num = 50
-		mi = int(self.__v_to_h_ratio * 100 / (0.5 + self.__undersampling / 2))
-		nover = int(self.__v_to_h_ratio * 50 / (0.5 + self.__undersampling / 2))
+		mi = self.getM()
+		nover = self.getNover()
 		print(mi, nover)
-		window = self.getWindow(mi)
-		# sns.lineplot(window)
+		window = self.getWindow()
+		# sns.lineplot(data=window)
 		# plt.show()
 		x_in_spectra = np.array(x_in_spectra)
 		x_spectrogram = np.empty(shape=(x_in_spectra.shape[0],self.__input_shape[0],self.__input_shape[1],1))
@@ -242,9 +249,9 @@ class SoilModel(object):
 			num = 25
 		elif mode=='one_zero':
 			num = 50
-		mi = int(self.__v_to_h_ratio * 100 / (0.5 + self.__undersampling / 2))
-		nover = int(self.__v_to_h_ratio * 50 / (0.5 + self.__undersampling / 2))
-		window = self.getWindow(mi)
+		mi = self.getM()
+		nover = self.getNover()
+		window = self.getWindow()
 		# sns.lineplot(window)
 		# plt.show()
 		x_spectrograms = []
@@ -371,8 +378,8 @@ class SoilModel(object):
 		cnn_common = Dense(1, activation='linear', kernel_initializer=kernel_initializer, bias_initializer=bias_initializer)(cnn_common)
 
 		model = Model(inputs=input_layers, outputs=[cnn_common])
-		# model.compile(optimizer=optimizer, loss='meanquared_error', metrics=['mse'])
-		model.compile(optimizer=optimizer, loss=root_mean_squared_error, metrics=['rmse'])
+		model.compile(optimizer=optimizer, loss='mean_squared_error', metrics=['mse'])
+		# model.compile(optimizer=optimizer, loss=root_mean_squared_error, metrics=['mse'])
 		
 		if printDetails:
 			print(model.summary())
@@ -382,7 +389,7 @@ class SoilModel(object):
 		kernel_initializer = 'random_uniform'
 		bias_initializer = 'zeros'
 		optimizer = Nadam(lr=0.0001)
-
+		# optimizer = RMSprop()
 		# Layer 1
 		input_layers = []
 		input_layers_outputs = []
@@ -414,8 +421,11 @@ class SoilModel(object):
 			outputs.append(mult_layer)
 
 		model = Model(inputs=input_layers, outputs=outputs)
+		# layer_outputs = [layer.output for layer in classifier.layers[:12]] 
+		# # Extracts the outputs of the top 12 layers
+		# activation_model = models.Model(inputs=classifier.input, outputs=layer_outputs) # Creates a model that will return these outputs, given the model input
 		# model.compile(optimizer=optimizer, loss='mean_squared_error', metrics=['mse'])
-		model.compile(optimizer=optimizer, loss=root_mean_squared_error, metrics=['rmse'])
+		model.compile(optimizer=optimizer, loss='mean_squared_error', metrics=['mae', coeff_determination, 'mse'])
 		if printDetails:
 			print(model.summary())
 		return model 
