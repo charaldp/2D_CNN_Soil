@@ -7,6 +7,8 @@ import seaborn as sns
 import argparse as argp
 import json
 import math
+import os
+from datetime import datetime
 
 def get_JSON_data(file_in):
 		with open(file_in) as data_file:
@@ -20,10 +22,18 @@ def parse_args():
 	parser.add_argument('-us','--undersampling', type=float, help='Undersampling to apply at input spcetra',default=1.0)
 	parser.add_argument('-md','--mode', type=str, help='Undersampling to apply at input spcetra',default='extract_abs')
 	parser.add_argument('-org','--readOrganic', help='Read organic soil samples',action='store_true')
+	parser.add_argument('-nm','--name', type=str, help='Extra name for experiment description',default="")
 	args = parser.parse_args()
 	return args
 
 args = parse_args()
+OUTPUT_PATH = '../output/diagrams'
+if not os.path.exists(OUTPUT_PATH):
+    os.mkdir(OUTPUT_PATH)
+datetime_str = datetime.now().strftime("%Y_%m_%d__%H_%M_%S_")+args.name+'/'
+path_datetime = os.path.join(OUTPUT_PATH, datetime_str)
+if not os.path.exists(path_datetime):
+    os.mkdir(path_datetime)
 print(args)
 print('Reading CSV...')
 if args.readOrganic:
@@ -130,25 +140,49 @@ if args.mode == 'extract_plot':
 	# data2_array[test_index].pop(0)
 	# data3_array[test_index].pop(0)
 	# data_abs_array[test_index].pop(0)
+elif args.mode=='extract_abs_sg1_implement':
+	print(len(data_array))
+	for i in range(len(data_array)):
+		data_array[i].pop(0)
+		ax = plt.plot(data_array[i])
+		plt.xlabel('Wavelength index', fontsize=18)
+		plt.ylabel('Reflectance', fontsize=18)
+		plt.savefig(path_datetime+'/'+str(i)+'_Initial.svg', dpi=1000,bbox_inches='tight')
+		plt.close()
+		# plt.plot(data3_array[test_index])
+		# plt.savefig('./SpectraTest/'+str(test_index)+'Initial_Reduced.png'),
+		# plt.close()
 
-	# plt.plot(data_array[test_index])
-	# plt.savefig('./SpectraTest/'+str(test_index)+'Initial.png')
-	# plt.close()
+		# # [ x*10 for x in data_array[0]]
+		absorb = -np.log10(data_array[i])
+		ax = plt.plot(absorb)
+		plt.xlabel('Wavelength index', fontsize=18)
+		plt.ylabel('Absorbance', fontsize=18)
+		plt.savefig(path_datetime+'/'+str(i)+'_Abs.svg', dpi=1000,bbox_inches='tight')
+		plt.close()
 
-	# plt.plot(data3_array[test_index])
-	# plt.savefig('./SpectraTest/'+str(test_index)+'Initial_Reduced.png')
-	# plt.close()
-
-	# # [ x*10 for x in data_array[0]]
-	# absorb = -np.log10(data_array[test_index])
-	# plt.plot(absorb)
-	# plt.savefig('./SpectraTest/'+str(test_index)+'Abs.png')
-	# plt.close()
-
-	# plt.plot(data_abs_array[test_index])
-	# plt.savefig('./SpectraTest/'+str(test_index)+'Abs_Reduced.png')
-	# plt.close()
-
+		# plt.plot(data_abs_array[test_index])
+		# plt.savefig(path_datetime+'/'+str(test_index)+'Abs_Reduced.png')
+		# plt.close()
+		data_array[i] = signal.savgol_filter(-np.log10(data_array[i]), 101, 3, 1).tolist()
+		ax = plt.plot(data_array[i])
+		plt.xlabel('Wavelength index', fontsize=18)
+		plt.ylabel('Absorbance SG1', fontsize=18)
+		plt.savefig(path_datetime+'/'+str(i)+'_Abs_SG1.svg', dpi=1000,bbox_inches='tight')
+		plt.close()
+		for x in range(len(data_array[i])):
+			if x < 100:
+				data_array[i][x] = 333 * pow(x / 100.0, 1.6) * data_array[i][x] + 0.5
+			else:
+				data_array[i][x] = 333 * data_array[i][x] + 0.5
+			# data_array[i][x] = strform.format(data_array[i][x])
+		ax = plt.plot(data_array[i])
+		plt.xlabel('Wavelength index', fontsize=18)
+		plt.ylabel('Absorbance SG1', fontsize=18)
+		plt.savefig(path_datetime+'/'+str(i)+'_Abs_SG1_Fixed.svg', dpi=1000,bbox_inches='tight')
+		plt.close()
+	exit()
+		# data_array[i].insert(0, temp)
 	# data_array[test_index] = signal.savgol_filter(absorb, window_length=101, polyorder=3, deriv=1, mode='nearest').tolist()
 	# for x in range(100):
 	# 	data_array[test_index][x] *= pow(x / 100.0, 1.6)

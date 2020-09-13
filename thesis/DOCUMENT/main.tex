@@ -1,5 +1,6 @@
 \documentclass[a4paper,12pt]{report}
 \usepackage[left=3cm,right=2.5cm,top=2.5cm,bottom=2.5cm]{geometry}
+% \usepackage[left=1.5cm,right=1.5cm,top=2cm,bottom=2cm]{geometry}
 \usepackage[T1]{fontenc}
 \usepackage[utf8]{inputenc}
 \usepackage[english,greek]{babel}
@@ -14,9 +15,17 @@
 \usepackage{siunitx}
 \usepackage{color}
 \usepackage{svg}
+\usepackage{relsize}
 \usepackage{outlines}
 \usepackage{kmath,kerkis}
 \usepackage{booktabs}
+\usepackage{afterpage}
+
+\newcommand\blankpage{%
+    \null
+    \thispagestyle{empty}%
+    \addtocounter{page}{-1}%
+    \newpage}
 
 \usepackage{todonotes}
 \paperwidth=\dimexpr \paperwidth + 6cm\relax
