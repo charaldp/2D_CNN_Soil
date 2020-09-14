@@ -495,6 +495,8 @@ class SoilModel(object):
 
 		model_weights = self.__fold_path+'/'+self.__prop+'_weights.hdf5'
 		model = self.createModelSingle(False)
+	    if self.__layer_visualization:
+			model = Model(inputs=model.input, outputs=model.layer_outputs[:12])
 		model.load_weights(model_weights)
 
 		y_train_pred = model.predict(x_train_spec)
@@ -580,7 +582,8 @@ class SoilModel(object):
 		clbcks = []
 		clbcks.append(TrainingResetCallback())
 		# clbcks.append(ReduceLROnPlateau(min_lr=0.0001))
-		clbcks.append(ModelCheckpoint(self.__fold_path+'/multi_weights.hdf5', monitor='val_loss', verbose=0, save_best_only=True, save_weights_only=True, mode='min', period=1))
+		model_weights = self.__fold_path+'/multi_weights.hdf5'
+		clbcks.append(ModelCheckpoint(model_weights, monitor='val_loss', verbose=0, save_best_only=True, save_weights_only=True, mode='min', period=1))
 		history = model.fit(x_train_spec, y_train_model, epochs=self.__epochs, batch_size=self.__batch_size, validation_data=(x_val_spec, y_val_model),callbacks=clbcks)
 		metrics = pnd.DataFrame(history.history)
 		metrics.to_csv(self.__fold_path+'/learning.csv')
@@ -603,6 +606,12 @@ class SoilModel(object):
 				plt.grid(linestyle=':')
 				plt.savefig(self.__fold_path+'/model_'+name+'.eps',format='eps',dpi=1000,bbox_inches='tight')
 				plt.close()
+
+		model = self.createModelMulti(False)
+	    if self.__layer_visualization:
+			model = Model(inputs=model.input, outputs=model.layer_outputs[:12])
+		model.load_weights(model_weights)
+
 		y_train_pred = model.predict(x_train_spec)
 		y_test_pred = model.predict(x_test_spec)
 		y_val_pred = model.predict(x_val_spec)
@@ -632,5 +641,3 @@ class SoilModel(object):
 		# predictions = pnd.DataFrame({'y_test': y_test, 'y_test_pred': y_test_pred})
 		# preds.to_csv(self.__fold_path+'/'+prop+'.csv')
 		return y_train_model, y_train_pred, y_test_model, y_test_pred, y_val_model, y_val_pred
-
-		# learing anomalies
