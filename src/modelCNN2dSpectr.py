@@ -20,7 +20,10 @@ elif tensorflow_ver[0] == '1':
 	from keras.callbacks import Callback, LambdaCallback, ReduceLROnPlateau, EarlyStopping, ModelCheckpoint
 	from keras.initializers import *
 	from keras import backend as K
-
+if args.allowGPUGrowth
+	config = tensorflow.compat.v1.ConfigProto()
+	config.gpu_options.allow_growth = True
+	session = tensorflow.compat.v1.Session(config=config)
 import sys,math,random,os,argparse, scipy
 import numpy as np
 from scipy import signal
