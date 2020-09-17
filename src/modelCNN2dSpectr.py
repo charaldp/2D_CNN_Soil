@@ -499,7 +499,7 @@ class SoilModel(object):
 
 		model_weights = self.__fold_path+'/'+self.__prop+'_weights.hdf5'
 		model = self.createModelSingle(False)
-	    if self.__layer_visualization:
+		if self.__layer_visualization:
 			model = Model(inputs=model.input, outputs=model.layer_outputs[:12])
 		model.load_weights(model_weights)
 
@@ -612,7 +612,7 @@ class SoilModel(object):
 				plt.close()
 
 		model = self.createModelMulti(False)
-	    if self.__layer_visualization:
+		if self.__layer_visualization:
 			model = Model(inputs=model.input, outputs=model.layer_outputs[:12])
 		model.load_weights(model_weights)
 
