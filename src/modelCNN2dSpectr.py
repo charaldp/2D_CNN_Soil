@@ -174,6 +174,7 @@ class SoilModel(object):
 		print('self.__preprecessingTec',len(self.__preprecessingTec))
 		input_shape = self.getInputShape(spectra_for_input_shape)
 		self.__input_shape = tuple([input_shape[0], input_shape[1], 1])
+		self.__layer_visualization = initialization_options.layerVisualization
 		
 
 		if initialization_options.singleOutput:
