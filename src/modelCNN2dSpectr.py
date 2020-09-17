@@ -20,10 +20,6 @@ elif tensorflow_ver[0] == '1':
 	from keras.callbacks import Callback, LambdaCallback, ReduceLROnPlateau, EarlyStopping, ModelCheckpoint
 	from keras.initializers import *
 	from keras import backend as K
-if args.allowGPUGrowth
-	config = tensorflow.compat.v1.ConfigProto()
-	config.gpu_options.allow_growth = True
-	session = tensorflow.compat.v1.Session(config=config)
 import sys,math,random,os,argparse, scipy
 import numpy as np
 from scipy import signal
@@ -43,7 +39,11 @@ def redirect_stdout(target):
     finally:
         sys.stdout = original
 
-
+def init(allowGPUGrowth):
+	if allowGPUGrowth:
+		config = tensorflow.compat.v1.ConfigProto()
+		config.gpu_options.allow_growth = True
+		session = tensorflow.compat.v1.Session(config=config)
 
 class OutputStandarizer(object):
 	statistics={}
@@ -170,6 +170,7 @@ class SoilModel(object):
 		self.__middleDenseLayersSizes = initialization_options.middleDenseLayersSizes
 		self.__singleOutput = initialization_options.singleOutput
 		self.__singleInput = initialization_options.singleInput
+		self.__optimizer = initialization_options.optimizer
 		self.__preprecessingTec = initialization_options.preprecessingTec
 		print('self.__preprecessingTec',len(self.__preprecessingTec))
 		input_shape = self.getInputShape(spectra_for_input_shape)
@@ -337,6 +338,12 @@ class SoilModel(object):
 		spectra_out = signal.savgol_filter(x_in_spectra, window_length, polyorder, deriv)
 		return spectra_out
 
+	def getOptimizer(self):
+		if self.__optimizer=='Adam':
+			return Adam(lr=0.0001)
+		elif self.__optimizer=='Nadam':
+			return Nadam(lr=0.0001)
+
 	def convUnit(self, net, filNumber,kernel_size,pool=False):
 		kernel_initializer = 'random_uniform'
 		bias_initializer = 'zeros'
@@ -392,7 +399,7 @@ class SoilModel(object):
 	def createModelMulti(self, printDetails = True):
 		kernel_initializer = 'random_uniform'
 		bias_initializer = 'zeros'
-		optimizer = Nadam(lr=0.0001)
+		optiomizer = self.getOptimizer()
 		# optimizer = RMSprop()
 		# Layer 1
 		input_layers = []

@@ -44,6 +44,7 @@ def parse_args():
     return args
 
 args = parse_args()
+modelCNN2dSpectr.init(args.allowGPUGrowth)
 print(args)
 print("Epochs: ", args.epochs)
 print("Batch Size: ", args.batchSize)
