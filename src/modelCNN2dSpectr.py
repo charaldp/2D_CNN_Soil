@@ -172,7 +172,6 @@ class SoilModel(object):
 		self.__singleInput = initialization_options.singleInput
 		self.__optimizer = initialization_options.optimizer
 		self.__preprecessingTec = initialization_options.preprecessingTec
-		print('self.__preprecessingTec',len(self.__preprecessingTec))
 		input_shape = self.getInputShape(spectra_for_input_shape)
 		self.__input_shape = tuple([input_shape[0], input_shape[1], 1])
 		self.__layer_visualization = initialization_options.layerVisualization
@@ -233,7 +232,6 @@ class SoilModel(object):
 			num = 50
 		mi = self.getM()
 		nover = self.getNover()
-		print(mi, nover)
 		window = self.getWindow()
 		# sns.lineplot(data=window)
 		# plt.show()
@@ -531,10 +529,6 @@ class SoilModel(object):
 		y_train_pred = np.array(y_train_pred.reshape(y_train_pred.shape[0]).tolist())
 		y_val_pred = np.array(y_val_pred.reshape(y_val_pred.shape[0]).tolist())
 		y_test_pred = np.array(y_test_pred.reshape(y_test_pred.shape[0]).tolist())
-		print('y_test')
-		print(y_test)
-		print('y_test_pred')
-		print(y_test_pred)
 		mse_test = ((y_test_pred - y_test)**2).mean()
 		mse_train = ((y_train_pred - y_train)**2).mean()
 		mse_val = ((y_val_pred - y_val)**2).mean()
@@ -654,6 +648,7 @@ class SoilModel(object):
 		return y_train_model, y_train_pred, y_test_model, y_test_pred, y_val_model, y_val_pred
 
 	def visualizeModelLayers(self, model, spectrogram):
+		print('Extracting layers activation visualization plots')
 		folder = os.path.join(self.__fold_path, 'visualizaion')
 		if not os.path.exists(folder):
 			os.mkdir(folder)
@@ -676,15 +671,15 @@ class SoilModel(object):
 					filters, biases = model.layers[k].get_weights()
 					f_min, f_max = filters.min(), filters.max()
 					filters = (filters - f_min) / (f_max - f_min)
-			print('Shape',layer_activation.shape)
-			print('n_features',n_features)
+			# print('Shape',layer_activation.shape)
+			# print('n_features',n_features)
 			size = layer_activation.shape[1] #The feature map has shape (1, size, size, n_features).
 			size_hor = layer_activation.shape[2] if len(layer_activation.shape)==4 else 1 #The feature map has shape (1, size, size, n_features).
 			n_cols = n_features // im_per_row # Tiles the activation channels in this matrix
-			print('size,size_hor,n_cols',size, size_hor, n_cols)
+			# print('size,size_hor,n_cols',size, size_hor, n_cols)
 			display_grid = np.zeros((size * n_cols, im_per_row * size_hor))
 			if 'conv' in layer_name:
-				print(filters.shape)
+				# print(filters.shape)
 				display_grid_kernel = np.zeros((self.__kernelSize * n_cols, self.__kernelSize * im_per_row))
 			for col in range(n_cols): # Tiles each filter into a big horizontal grid
 				for row in range(im_per_row):
@@ -706,15 +701,13 @@ class SoilModel(object):
 			plt.imshow(display_grid, aspect='auto', cmap='viridis')
 			if not (k == 0 or ( k < len(self.__preprecessingTec) and not self.__singleInput)):
 				grid_data_x = [-0.5 + x for x in range(0, size_hor * (images_per_row + 1), size_hor)]
-				print('grid_data_x', grid_data_x)
 				grid_data_y = [-0.5 + x for x in range(0, size * (n_cols + 1), size)]
-				print('grid_data_y', grid_data_y)
 				# plt.grid(color='black', linestyle='-', linewidth=1)
 				plt.hlines(y=grid_data_y, xmin=grid_data_x[0], xmax=grid_data_x[-1], linestyles='solid')
 				plt.vlines(x=grid_data_x, ymin=grid_data_y[0], ymax=grid_data_y[-1], linestyles='solid')
 			# ax.set_xticks(grid_data_x, minor=True)
 			# ax.set_yticks(grid_data_x, minor=True)
-			print('imshow')
+			# print('imshow')
 			name = folder+'/model_layer_'+str(k)+'_'+self.__prop+'_'+layer_name+'.svg' if self.__singleOutput else folder+'/model_layer_'+str(k)+'_'+layer_name+'.svg'
 			plt.savefig(name,dpi=1000)
 			plt.close()
