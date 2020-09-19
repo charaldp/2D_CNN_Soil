@@ -176,7 +176,7 @@ class SoilModel(object):
 		input_shape = self.getInputShape(spectra_for_input_shape)
 		self.__input_shape = tuple([input_shape[0], input_shape[1], 1])
 		self.__layer_visualization = initialization_options.layerVisualization
-		
+		self.__visualization_layers_number = int(initialization_options.visualizationLayersNumber)
 
 		if initialization_options.singleOutput:
 			self.__prop = prop
@@ -362,7 +362,7 @@ class SoilModel(object):
 		bias_initializer = 'zeros'
 		constant_initializer = Constant(value=-0.01)
 		# kernel_initializer = constant_initializer
-		optimizer = Adam(lr=0.0005)
+		optimizer = self.getOptimizer()
 		
 		input_layers = []
 		input_layers_outputs = []
@@ -399,7 +399,7 @@ class SoilModel(object):
 	def createModelMulti(self, printDetails = True):
 		kernel_initializer = 'random_uniform'
 		bias_initializer = 'zeros'
-		optiomizer = self.getOptimizer()
+		optimizer = self.getOptimizer()
 		# optimizer = RMSprop()
 		# Layer 1
 		input_layers = []
@@ -506,9 +506,9 @@ class SoilModel(object):
 
 		model_weights = self.__fold_path+'/'+self.__prop+'_weights.hdf5'
 		model = self.createModelSingle(False)
-		if self.__layer_visualization:
-			model = Model(inputs=model.input, outputs=model.layer_outputs[:12])
 		model.load_weights(model_weights)
+		if self.__layer_visualization:
+			self.visualizeModelLayers(model, x_train_spec[:2])
 
 		y_train_pred = model.predict(x_train_spec)
 		y_val_pred = model.predict(x_val_spec)
@@ -619,9 +619,9 @@ class SoilModel(object):
 				plt.close()
 
 		model = self.createModelMulti(False)
-		if self.__layer_visualization:
-			model = Model(inputs=model.input, outputs=model.layer_outputs[:12])
 		model.load_weights(model_weights)
+		if self.__layer_visualization:
+			self.visualizeModelLayers(model, x_train_spec[:2])
 
 		y_train_pred = model.predict(x_train_spec)
 		y_test_pred = model.predict(x_test_spec)
@@ -652,3 +652,83 @@ class SoilModel(object):
 		# predictions = pnd.DataFrame({'y_test': y_test, 'y_test_pred': y_test_pred})
 		# preds.to_csv(self.__fold_path+'/'+prop+'.csv')
 		return y_train_model, y_train_pred, y_test_model, y_test_pred, y_val_model, y_val_pred
+
+	def visualizeModelLayers(self, model, spectrogram):
+		folder = os.path.join(self.__fold_path, 'visualizaion')
+		if not os.path.exists(folder):
+			os.mkdir(folder)
+		layer_number = len(model.layers) if len(model.layers) < self.__visualization_layers_number else self.__visualization_layers_number
+		layer_outputs = [layer.output for layer in model.layers[:layer_number]]
+		activation_model = Model(inputs=model.input, outputs=layer_outputs)
+		activations = activation_model.predict(spectrogram)
+		layer_names = []
+		for layer in model.layers[:layer_number]:
+			layer_names.append(layer.name) # Names of the layers, so you can have them as part of your plot
+		images_per_row = 3
+		k = 0
+		for layer_name, layer_activation in zip(layer_names, activations): # Displays the feature maps
+			n_features = 18# layer_activation.shape[-1] # Number of features in the feature map
+			if k == 0 or ( k < len(self.__preprecessingTec) and not self.__singleInput):
+				n_features, im_per_row = 1, 1
+			else:
+				n_features, im_per_row = 18, images_per_row
+				if 'conv' in layer_name:
+					filters, biases = model.layers[k].get_weights()
+					f_min, f_max = filters.min(), filters.max()
+					filters = (filters - f_min) / (f_max - f_min)
+			print('Shape',layer_activation.shape)
+			print('n_features',n_features)
+			size = layer_activation.shape[1] #The feature map has shape (1, size, size, n_features).
+			size_hor = layer_activation.shape[2] if len(layer_activation.shape)==4 else 1 #The feature map has shape (1, size, size, n_features).
+			n_cols = n_features // im_per_row # Tiles the activation channels in this matrix
+			print('size,size_hor,n_cols',size, size_hor, n_cols)
+			display_grid = np.zeros((size * n_cols, im_per_row * size_hor))
+			if 'conv' in layer_name:
+				print(filters.shape)
+				display_grid_kernel = np.zeros((self.__kernelSize * n_cols, self.__kernelSize * im_per_row))
+			for col in range(n_cols): # Tiles each filter into a big horizontal grid
+				for row in range(im_per_row):
+					channel_image = layer_activation[0, :, :, col * im_per_row + row]
+					channel_image -= channel_image.mean() # Post-processes the feature to make it visually palatable
+					channel_image /= channel_image.std()
+					channel_image *= 64
+					channel_image += 128
+					channel_image = np.clip(channel_image, 0, 255).astype('uint8')
+					display_grid[col * size : (col + 1) * size, row * size_hor : (row + 1) * size_hor] = channel_image
+					if 'conv' in layer_name:
+						display_grid_kernel[col * self.__kernelSize : (col + 1) * self.__kernelSize, row * self.__kernelSize : (row + 1) * self.__kernelSize] = filters[:, :, 0, col * im_per_row + row]
+			scale = 1. / size_hor
+			scale_hor = 1. / size
+			print(display_grid.shape, scale_hor, scale)
+			plt.figure()
+			# plt.figure(figsize=(scale * display_grid.shape[1], scale_hor * display_grid.shape[0]))
+			plt.title(layer_name)
+			plt.imshow(display_grid, aspect='auto', cmap='viridis')
+			if not (k == 0 or ( k < len(self.__preprecessingTec) and not self.__singleInput)):
+				grid_data_x = [-0.5 + x for x in range(0, size_hor * (images_per_row + 1), size_hor)]
+				print('grid_data_x', grid_data_x)
+				grid_data_y = [-0.5 + x for x in range(0, size * (n_cols + 1), size)]
+				print('grid_data_y', grid_data_y)
+				# plt.grid(color='black', linestyle='-', linewidth=1)
+				plt.hlines(y=grid_data_y, xmin=grid_data_x[0], xmax=grid_data_x[-1], linestyles='solid')
+				plt.vlines(x=grid_data_x, ymin=grid_data_y[0], ymax=grid_data_y[-1], linestyles='solid')
+			# ax.set_xticks(grid_data_x, minor=True)
+			# ax.set_yticks(grid_data_x, minor=True)
+			print('imshow')
+			name = folder+'/model_layer_'+str(k)+'_'+self.__prop+'_'+layer_name+'.svg' if self.__singleOutput else folder+'/model_layer_'+str(k)+'_'+layer_name+'.svg'
+			plt.savefig(name,dpi=1000)
+			plt.close()
+			if 'conv' in layer_name:
+				# Save kernals plots
+				plt.figure()
+				plt.title(layer_name+'_kernels')
+				grid_data_x = [-0.5 + x for x in range(0, self.__kernelSize * (images_per_row + 1), self.__kernelSize)]
+				grid_data_y = [-0.5 + x for x in range(0, self.__kernelSize * (n_cols + 1), self.__kernelSize)]
+				# plt.grid(color='black', linestyle='-', linewidth=1)
+				plt.imshow(display_grid_kernel, aspect='auto', cmap='gray')
+				plt.hlines(y=grid_data_y, xmin=grid_data_x[0], xmax=grid_data_x[-1], linestyles='solid')
+				plt.vlines(x=grid_data_x, ymin=grid_data_y[0], ymax=grid_data_y[-1], linestyles='solid')
+				name = folder+'/model_layer_'+str(k)+'_'+self.__prop+'_'+layer_name+'_kernels.svg' if self.__singleOutput else folder+'/model_layer_'+str(k)+'_'+layer_name+'_kernels.svg'
+				plt.savefig(name,dpi=1000)
+				plt.close()
+			k += 1
