@@ -648,6 +648,13 @@ class SoilModel(object):
 		return y_train_model, y_train_pred, y_test_model, y_test_pred, y_val_model, y_val_pred
 
 	def visualizeModelLayers(self, model, spectrogram):
+		'''
+		' Function implementation is a modification on the combination of the following codes:
+		' https://towardsdatascience.com/visualizing-intermediate-activation-in-convolutional-neural-networks-with-keras-260b36d60d0
+		' for the layers visualization,
+		' https://machinelearningmastery.com/how-to-visualize-filters-and-feature-maps-in-convolutional-neural-networks/
+		' for the kernels visualization
+		'''
 		print('Extracting layers activation visualization plots')
 		folder = os.path.join(self.__fold_path, 'visualizaion')
 		if not os.path.exists(folder):
@@ -684,11 +691,11 @@ class SoilModel(object):
 			for col in range(n_cols): # Tiles each filter into a big horizontal grid
 				for row in range(im_per_row):
 					channel_image = layer_activation[0, :, :, col * im_per_row + row]
-					channel_image -= channel_image.mean() # Post-processes the feature to make it visually palatable
-					channel_image /= channel_image.std()
-					channel_image *= 64
-					channel_image += 128
-					channel_image = np.clip(channel_image, 0, 255).astype('uint8')
+					# channel_image -= channel_image.mean() # Post-processes the feature to make it visually palatable
+					# channel_image /= channel_image.std()
+					# channel_image *= 64
+					# channel_image += 128
+					# channel_image = np.clip(channel_image, 0, 255).astype('uint8')
 					display_grid[col * size : (col + 1) * size, row * size_hor : (row + 1) * size_hor] = channel_image
 					if 'conv' in layer_name:
 						display_grid_kernel[col * self.__kernelSize : (col + 1) * self.__kernelSize, row * self.__kernelSize : (row + 1) * self.__kernelSize] = filters[:, :, 0, col * im_per_row + row]
@@ -697,7 +704,7 @@ class SoilModel(object):
 			print(display_grid.shape, scale_hor, scale)
 			plt.figure()
 			# plt.figure(figsize=(scale * display_grid.shape[1], scale_hor * display_grid.shape[0]))
-			plt.title(layer_name)
+			plt.title(self.getDiagramLayerTitle(layer_name, k))
 			plt.imshow(display_grid, aspect='auto', cmap='viridis')
 			if not (k == 0 or ( k < len(self.__preprecessingTec) and not self.__singleInput)):
 				grid_data_x = [-0.5 + x for x in range(0, size_hor * (images_per_row + 1), size_hor)]
@@ -714,7 +721,7 @@ class SoilModel(object):
 			if 'conv' in layer_name:
 				# Save kernals plots
 				plt.figure()
-				plt.title(layer_name+'_kernels')
+				plt.title(self.getDiagramLayerTitle(layer_name, k)+' Kernels')
 				grid_data_x = [-0.5 + x for x in range(0, self.__kernelSize * (images_per_row + 1), self.__kernelSize)]
 				grid_data_y = [-0.5 + x for x in range(0, self.__kernelSize * (n_cols + 1), self.__kernelSize)]
 				# plt.grid(color='black', linestyle='-', linewidth=1)
@@ -725,3 +732,18 @@ class SoilModel(object):
 				plt.savefig(name,dpi=1000)
 				plt.close()
 			k += 1
+
+	def getDiagramLayerTitle(self, name, index)
+		if 'conv2d' in name:
+			title = '2D Concolutional Layer '
+		elif 'batch' in name:
+			title = 'Batch Normalization Layer '
+		elif 're_lu' in name:
+			title = 'Batch Normalization Layer '
+		elif 'max_pooling' in name:
+			title = 'Max Pooling 2D Layer '
+		elif 'input' in name:
+			title = 'Input Layer '
+		else:
+			title = 'Layer '
+		return title+str(index)
