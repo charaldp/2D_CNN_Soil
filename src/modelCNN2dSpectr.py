@@ -733,7 +733,7 @@ class SoilModel(object):
 				plt.close()
 			k += 1
 
-	def getDiagramLayerTitle(self, name, index)
+	def getDiagramLayerTitle(self, name, index):
 		if 'conv2d' in name:
 			title = '2D Concolutional Layer '
 		elif 'batch' in name:
