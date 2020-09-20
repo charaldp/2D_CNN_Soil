@@ -739,7 +739,7 @@ class SoilModel(object):
 		elif 'batch' in name:
 			title = 'Batch Normalization Layer '
 		elif 're_lu' in name:
-			title = 'Batch Normalization Layer '
+			title = 'ReLU Layer '
 		elif 'max_pooling' in name:
 			title = 'Max Pooling 2D Layer '
 		elif 'input' in name:
