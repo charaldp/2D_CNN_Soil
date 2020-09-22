@@ -17,6 +17,10 @@ def parse_args():
     parser.add_argument('-fld','--folders',type=str, help='Model folders to process',default=[''], nargs='+')
     parser.add_argument('-md','--mode',type=str, help='Mode to use script 1) \'metrics\' ',default='metrics')
     parser.add_argument('-mn','--modelNames',type=str, help='Model names to identify each folder on plots',default=[], nargs='+')
+    parser.add_argument('-pv','--parameterValues',type=float, help='Values of parameter used for horizontal axis',default=[], nargs='+')
+    parser.add_argument('-pn','--parameterName',type=str, help='Name of parameter used',default='V/H Ratio')
+    parser.add_argument('-ps','--parameterSymbol',type=str, help='Name of parameter used',default='v_h')
+    
     args = parser.parse_args()
     return args
 
@@ -29,6 +33,17 @@ def autolabel(rects):
                     xytext=(0, 3),  # 3 points vertical offset
                     textcoords="offset points",
                     ha='center', va='bottom')
+def extractDiagram(x, y, x_name, y_name, path):
+    # dtfr = pnd.DataFrame(data_array, columns=columns).transpose()
+    # ax = sns.lineplot(data=dataframe, legend=False)
+    print(len(x), len(y))
+    ax = plt.plot(x, y)
+    plt.xlabel(x_name, fontsize=18)
+    plt.ylabel(y_name, fontsize=18)
+    # ax.tick_params(axis='x', labelsize=18)
+    # ax.tick_params(axis='y', labelsize=18)
+    plt.savefig(path,format='svg', dpi=1000, bbox_inches='tight')
+    plt.close()
 
 OUTPUT_PATH = '../output/diagrams'
 if not os.path.exists(OUTPUT_PATH):
@@ -160,3 +175,25 @@ if args.mode == 'boxplots':
         #     print(data_test[col])
         # for col in data_test.columns:
         #     print(data_test[col])
+
+if args.mode=='parameterDiagram':
+    values_x = args.parameterValues
+    mean_test_rmse = []
+    mean_test_rpiq = []
+    mean_test_determ = []
+    for j, folder in enumerate(args.folders):
+        data = pnd.read_csv(folder+'/multi_output/multi_input/metrics.csv', index_col=0)
+        datrans = data.T
+        # datrans[0]
+        mean_test_rmse.append(np.mean(datrans['test_rmse']))
+        mean_test_rpiq.append(np.mean(datrans['test_rpiq']))
+        mean_test_determ.append(np.mean(datrans['test_determ']))
+    print(mean_test_rmse)
+    print(mean_test_rpiq)
+    print(mean_test_determ)
+    # dataframe_test_rmse = pnd.DataFrame(data=mean_test_rmse, columns=columns).transpose()
+    # dataframe_test_rpiq = pnd.DataFrame(data=mean_test_rpiq, columns=columns).transpose()
+    # dataframe_test_determ = pnd.DataFrame(data=mean_test_determ, columns=columns).transpose()
+    extractDiagram(values_x, mean_test_rmse, args.parameterName, 'Test RMSE', path_datetime+'/RMSE_'+args.parameterSymbol+'.svg')
+    extractDiagram(values_x, mean_test_rpiq, args.parameterName, 'Test RPIQ', path_datetime+'/RPIQ_'+args.parameterSymbol+'.svg')
+    extractDiagram(values_x, mean_test_determ, args.parameterName, 'Test R^2', path_datetime+'/Determ_'+args.parameterSymbol+'.svg')
