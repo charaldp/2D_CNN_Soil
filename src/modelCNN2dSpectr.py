@@ -685,18 +685,22 @@ class SoilModel(object):
 			n_cols = n_features // im_per_row # Tiles the activation channels in this matrix
 			# print('size,size_hor,n_cols',size, size_hor, n_cols)
 			display_grid = np.zeros((size * n_cols, im_per_row * size_hor))
+			display_grid_standarized = np.zeros((size * n_cols, im_per_row * size_hor))
 			if 'conv' in layer_name:
 				# print(filters.shape)
 				display_grid_kernel = np.zeros((self.__kernelSize * n_cols, self.__kernelSize * im_per_row))
 			for col in range(n_cols): # Tiles each filter into a big horizontal grid
 				for row in range(im_per_row):
 					channel_image = layer_activation[0, :, :, col * im_per_row + row]
-					# channel_image -= channel_image.mean() # Post-processes the feature to make it visually palatable
-					# channel_image /= channel_image.std()
-					# channel_image *= 64
-					# channel_image += 128
-					# channel_image = np.clip(channel_image, 0, 255).astype('uint8')
 					display_grid[col * size : (col + 1) * size, row * size_hor : (row + 1) * size_hor] = channel_image
+
+					channel_image_standarized = layer_activation[0, :, :, col * im_per_row + row]
+					channel_image_standarized -= channel_image.mean() # Post-processes the feature to make it visually palatable
+					channel_image_standarized /= channel_image.std()
+					channel_image_standarized *= 64
+					channel_image_standarized += 128
+					channel_image_standarized = np.clip(channel_image, 0, 255).astype('uint8')
+					display_grid_standarized[col * size : (col + 1) * size, row * size_hor : (row + 1) * size_hor] = channel_image_standarized
 					if 'conv' in layer_name:
 						display_grid_kernel[col * self.__kernelSize : (col + 1) * self.__kernelSize, row * self.__kernelSize : (row + 1) * self.__kernelSize] = filters[:, :, 0, col * im_per_row + row]
 			scale = 1. / size_hor
@@ -716,7 +720,25 @@ class SoilModel(object):
 			# ax.set_yticks(grid_data_x, minor=True)
 			# print('imshow')
 			name = folder+'/model_layer_'+str(k)+'_'+self.__prop+'_'+layer_name+'.svg' if self.__singleOutput else folder+'/model_layer_'+str(k)+'_'+layer_name+'.svg'
-			plt.savefig(name,dpi=1000)
+			plt.savefig(name,dpi=1000,bbox_inches='tight')
+			plt.close()
+
+			# Standarized Layer view
+			plt.figure()
+			# plt.figure(figsize=(scale * display_grid.shape[1], scale_hor * display_grid.shape[0]))
+			plt.title(self.getDiagramLayerTitle(layer_name, k))
+			plt.imshow(display_grid_standarized, aspect='auto', cmap='viridis')
+			if not (k == 0 or ( k < len(self.__preprecessingTec) and not self.__singleInput)):
+				grid_data_x = [-0.5 + x for x in range(0, size_hor * (images_per_row + 1), size_hor)]
+				grid_data_y = [-0.5 + x for x in range(0, size * (n_cols + 1), size)]
+				# plt.grid(color='black', linestyle='-', linewidth=1)
+				plt.hlines(y=grid_data_y, xmin=grid_data_x[0], xmax=grid_data_x[-1], linestyles='solid')
+				plt.vlines(x=grid_data_x, ymin=grid_data_y[0], ymax=grid_data_y[-1], linestyles='solid')
+			# ax.set_xticks(grid_data_x, minor=True)
+			# ax.set_yticks(grid_data_x, minor=True)
+			# print('imshow')
+			name = folder+'/model_layer_'+str(k)+'_'+self.__prop+'_'+layer_name+'_standarized.svg' if self.__singleOutput else folder+'/model_layer_'+str(k)+'_'+layer_name+'_standarized.svg'
+			plt.savefig(name,dpi=1000,bbox_inches='tight')
 			plt.close()
 			if 'conv' in layer_name:
 				# Save kernals plots
@@ -725,11 +747,11 @@ class SoilModel(object):
 				grid_data_x = [-0.5 + x for x in range(0, self.__kernelSize * (images_per_row + 1), self.__kernelSize)]
 				grid_data_y = [-0.5 + x for x in range(0, self.__kernelSize * (n_cols + 1), self.__kernelSize)]
 				# plt.grid(color='black', linestyle='-', linewidth=1)
-				plt.imshow(display_grid_kernel, aspect='auto', cmap='gray')
+				plt.imshow(display_grid_kernel, aspect='auto', cmap='viridis')
 				plt.hlines(y=grid_data_y, xmin=grid_data_x[0], xmax=grid_data_x[-1], linestyles='solid')
 				plt.vlines(x=grid_data_x, ymin=grid_data_y[0], ymax=grid_data_y[-1], linestyles='solid')
 				name = folder+'/model_layer_'+str(k)+'_'+self.__prop+'_'+layer_name+'_kernels.svg' if self.__singleOutput else folder+'/model_layer_'+str(k)+'_'+layer_name+'_kernels.svg'
-				plt.savefig(name,dpi=1000)
+				plt.savefig(name,dpi=1000,bbox_inches='tight')
 				plt.close()
 			k += 1
 
