@@ -666,7 +666,7 @@ class SoilModel(object):
 		layer_names = []
 		for layer in model.layers[:layer_number]:
 			layer_names.append(layer.name) # Names of the layers, so you can have them as part of your plot
-		images_per_row = 3
+		images_per_row = 2
 		k = 0
 		for layer_name, layer_activation in zip(layer_names, activations): # Displays the feature maps
 			n_features = 18# layer_activation.shape[-1] # Number of features in the feature map
@@ -701,7 +701,9 @@ class SoilModel(object):
 					channel_image_standarized += 128
 					channel_image_standarized = np.clip(channel_image, 0, 255).astype('uint8')
 					display_grid_standarized[col * size : (col + 1) * size, row * size_hor : (row + 1) * size_hor] = channel_image_standarized
-					if 'conv' in layer_name:
+			if 'conv' in layer_name:
+				for col in range(n_cols): # Tiles each filter into a big horizontal grid
+					for row in range(im_per_row):
 						display_grid_kernel[col * self.__kernelSize : (col + 1) * self.__kernelSize, row * self.__kernelSize : (row + 1) * self.__kernelSize] = filters[:, :, 0, col * im_per_row + row]
 			scale = 1. / size_hor
 			scale_hor = 1. / size
@@ -709,7 +711,7 @@ class SoilModel(object):
 			plt.figure()
 			# plt.figure(figsize=(scale * display_grid.shape[1], scale_hor * display_grid.shape[0]))
 			plt.title(self.getDiagramLayerTitle(layer_name, k))
-			plt.imshow(display_grid, aspect='auto', cmap='viridis')
+			plt.imshow(display_grid, aspect='equal', cmap='viridis')
 			if not (k == 0 or ( k < len(self.__preprecessingTec) and not self.__singleInput)):
 				grid_data_x = [-0.5 + x for x in range(0, size_hor * (images_per_row + 1), size_hor)]
 				grid_data_y = [-0.5 + x for x in range(0, size * (n_cols + 1), size)]
@@ -727,7 +729,7 @@ class SoilModel(object):
 			plt.figure()
 			# plt.figure(figsize=(scale * display_grid.shape[1], scale_hor * display_grid.shape[0]))
 			plt.title(self.getDiagramLayerTitle(layer_name, k))
-			plt.imshow(display_grid_standarized, aspect='auto', cmap='viridis')
+			plt.imshow(display_grid_standarized, aspect='equal', cmap='viridis')
 			if not (k == 0 or ( k < len(self.__preprecessingTec) and not self.__singleInput)):
 				grid_data_x = [-0.5 + x for x in range(0, size_hor * (images_per_row + 1), size_hor)]
 				grid_data_y = [-0.5 + x for x in range(0, size * (n_cols + 1), size)]
@@ -747,7 +749,7 @@ class SoilModel(object):
 				grid_data_x = [-0.5 + x for x in range(0, self.__kernelSize * (images_per_row + 1), self.__kernelSize)]
 				grid_data_y = [-0.5 + x for x in range(0, self.__kernelSize * (n_cols + 1), self.__kernelSize)]
 				# plt.grid(color='black', linestyle='-', linewidth=1)
-				plt.imshow(display_grid_kernel, aspect='auto', cmap='viridis')
+				plt.imshow(display_grid_kernel, aspect='equal', cmap='viridis')
 				plt.hlines(y=grid_data_y, xmin=grid_data_x[0], xmax=grid_data_x[-1], linestyles='solid')
 				plt.vlines(x=grid_data_x, ymin=grid_data_y[0], ymax=grid_data_y[-1], linestyles='solid')
 				name = folder+'/model_layer_'+str(k)+'_'+self.__prop+'_'+layer_name+'_kernels.svg' if self.__singleOutput else folder+'/model_layer_'+str(k)+'_'+layer_name+'_kernels.svg'
