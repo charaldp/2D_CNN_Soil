@@ -178,22 +178,22 @@ if args.mode == 'boxplots':
 
 if args.mode=='parameterDiagram':
     values_x = args.parameterValues
-    mean_test_rmse = []
-    mean_test_rpiq = []
-    mean_test_determ = []
+    mean_val_rmse = []
+    mean_val_rpiq = []
+    mean_val_determ = []
     for j, folder in enumerate(args.folders):
         data = pnd.read_csv(folder+'/multi_output/multi_input/metrics.csv', index_col=0)
         datrans = data.T
         # datrans[0]
-        mean_test_rmse.append(np.mean(datrans['test_rmse']))
-        mean_test_rpiq.append(np.mean(datrans['test_rpiq']))
-        mean_test_determ.append(np.mean(datrans['test_determ']))
-    print(mean_test_rmse)
-    print(mean_test_rpiq)
-    print(mean_test_determ)
-    # dataframe_test_rmse = pnd.DataFrame(data=mean_test_rmse, columns=columns).transpose()
-    # dataframe_test_rpiq = pnd.DataFrame(data=mean_test_rpiq, columns=columns).transpose()
-    # dataframe_test_determ = pnd.DataFrame(data=mean_test_determ, columns=columns).transpose()
-    extractDiagram(values_x, mean_test_rmse, args.parameterName, 'Test RMSE', path_datetime+'/RMSE_'+args.parameterSymbol+'.svg')
-    extractDiagram(values_x, mean_test_rpiq, args.parameterName, 'Test RPIQ', path_datetime+'/RPIQ_'+args.parameterSymbol+'.svg')
-    extractDiagram(values_x, mean_test_determ, args.parameterName, 'Test R^2', path_datetime+'/Determ_'+args.parameterSymbol+'.svg')
+        mean_val_rmse.append(np.mean(datrans['val_rmse']))
+        mean_val_rpiq.append(np.mean(datrans['val_rpiq']))
+        mean_val_determ.append(np.mean(datrans['val_determ']))
+    print(mean_val_rmse)
+    print(mean_val_rpiq)
+    print(mean_val_determ)
+    # dataframe_val_rmse = pnd.DataFrame(data=mean_val_rmse, columns=columns).transpose()
+    # dataframe_val_rpiq = pnd.DataFrame(data=mean_val_rpiq, columns=columns).transpose()
+    # dataframe_val_determ = pnd.DataFrame(data=mean_val_determ, columns=columns).transpose()
+    extractDiagram(values_x, mean_val_rmse, args.parameterName, 'Validation RMSE', path_datetime+'/RMSE_'+args.parameterSymbol+'.svg')
+    extractDiagram(values_x, mean_val_rpiq, args.parameterName, 'Validation RPIQ', path_datetime+'/RPIQ_'+args.parameterSymbol+'.svg')
+    extractDiagram(values_x, mean_val_determ, args.parameterName, 'Validation R^2', path_datetime+'/Determ_'+args.parameterSymbol+'.svg')
