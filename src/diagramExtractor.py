@@ -62,44 +62,68 @@ print(args.modelNames)
 if args.mode == 'metrics':
     if 'Test' in args.useSet:
         data_test = {}
-        for prop in args.properties:
-            data_test[prop] = {}
-        for prop in data_test:
-            for metric in args.metrics:
-                data_test[prop][metric] = []
+        for metric in args.metrics:
+            data_test[metric] = {}
+        for metric in args.metrics:
+            for prop in args.properties:
+                data_test[metric][prop] = {}
     if 'Val' in args.useSet:
         data_val = {}
-        for prop in args.properties:
-            data_val[prop] = {}
-        for prop in data_val:
-            for metric in args.metrics:
-                data_val[prop][metric] = []
+        for metric in args.metrics:
+            data_val[metric] = {}
+        for metric in args.metrics:
+            for prop in args.properties:
+                data_val[metric][prop] = {}
     if 'Train' in args.useSet:
         data_train = {}
-        for prop in args.properties:
-            data_train[prop] = {}
-        for prop in data_train:
-            for metric in args.metrics:
-                data_train[prop][metric] = []
+        for metric in args.metrics:
+            data_train[metric] = {}
+        for metric in args.metrics:
+            for prop in args.properties:
+                data_train[metric][prop] = {}
     props = []
-    for folder in args.folders:
+    for j, folder in enumerate(args.folders):
         data = pnd.read_csv(folder+'/metrics.csv', index_col=0)
         properties = data.columns
         # datrans = data.T
         print('properties', properties)
         print('data')
         print(data)
-        for prop in args.properties:
+        for metric in args.metrics:
             if 'Test' in args.useSet:
-                for metric in args.metrics:
-                    data_test[prop][metric].append(data[prop]['test_'+metric])
+                for prop in args.properties:
+                    data_test[metric][prop][args.modelNames[j]] = data[prop]['test_'+metric]
             if 'Val' in args.useSet:
-                for metric in args.metrics:
-                    data_val[prop][metric].append(data[prop]['val_'+metric])
+                for prop in args.properties:
+                    data_val[metric][prop][args.modelNames[j]] = data[prop]['val_'+metric]
             if 'Train' in args.useSet:
-                for metric in args.metrics:
-                    data_train[prop][metric].append(data[prop]['train_'+metric])
-    
+                for prop in args.properties:
+                    data_train[metric][prop][args.modelNames[j]] = data[prop]['train_'+metric]
+    for metric in args.metrics:
+        if 'Test' in args.useSet:
+            data_test[metric] = pnd.DataFrame(data_test[metric])
+        if 'Val' in args.useSet:
+            data_val[metric] = pnd.DataFrame(data_val[metric])
+        if 'Train' in args.useSet:
+            data_train[metric] = pnd.DataFrame(data_train[metric])
+
+    tips = sns.load_dataset("tips")
+    for prop in args.properties:
+        for metric in args.metrics:
+            print(prop, metric)
+            if 'Test' in args.useSet:
+                ax = sns.barplot(x=data_test[metric].index, y=prop, data=data_test[metric])
+                plt.savefig(path_datetime+'/test_'+prop+'_'+metric+'.svg',format='svg', dpi=1000, bbox_inches='tight')
+                plt.close()
+            if 'Val' in args.useSet:
+                ax = sns.barplot(x=data_val[metric].index, y=prop, data=data_val[metric])
+                plt.savefig(path_datetime+'/val_'+prop+'_'+metric+'.svg',format='svg', dpi=1000, bbox_inches='tight')
+                plt.close()
+            if 'Train' in args.useSet:
+                ax = sns.barplot(x=data_train[metric].index, y=prop, data=data_train[metric])
+                plt.savefig(path_datetime+'/train_'+prop+'_'+metric+'.svg',format='svg', dpi=1000, bbox_inches='tight')
+                plt.close()
+            
     print(data_test)
     exit()
     fig, ax = plt.subplots()
