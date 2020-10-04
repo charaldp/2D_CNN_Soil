@@ -45,9 +45,22 @@ def extractDiagram(x, y, x_name, y_name, path):
     plt.ylabel(y_name, fontsize=18)
     # ax.tick_params(axis='x', labelsize=18)
     # ax.tick_params(axis='y', labelsize=18)
-    plt.savefig(path,format='svg', dpi=1000, bbox_inches='tight')
+    plt.savefig(path,format='pdf', dpi=1000, bbox_inches='tight')
     plt.close()
 
+def fixbarplots(ax, data_set, prop, width, metric, metrics_symbols):
+    j = 0
+    for index, row in data_set[metric].iterrows():
+        ax.text(j,row[prop]*1.01, round(row[prop],3), color='black', ha="center", fontsize=10)
+        j+=1
+    for patch in ax.patches :
+        current_width = patch.get_width()
+        diff = current_width - width
+        patch.set_width(width)
+        patch.set_x(patch.get_x() + diff * .5)
+        plt.ylabel(prop+' '+metrics_symbols[metric], fontsize=12)
+
+metrics_symbols = {'determ': "Coefficient of Determination", 'rpiq': "RPIQ", 'rmse': "Root Mean Squared Error"}
 OUTPUT_PATH = '../output/diagrams'
 if not os.path.exists(OUTPUT_PATH):
     os.mkdir(OUTPUT_PATH)
@@ -113,15 +126,18 @@ if args.mode == 'metrics':
             print(prop, metric)
             if 'Test' in args.useSet:
                 ax = sns.barplot(x=data_test[metric].index, y=prop, data=data_test[metric])
-                plt.savefig(path_datetime+'/test_'+prop+'_'+metric+'.svg',format='svg', dpi=1000, bbox_inches='tight')
+                fixbarplots(ax, data_test, prop, 0.5, metric, metrics_symbols)
+                plt.savefig(path_datetime+'/test_'+prop+'_'+metric+'.pdf',format='pdf', dpi=1000, bbox_inches='tight')
                 plt.close()
             if 'Val' in args.useSet:
                 ax = sns.barplot(x=data_val[metric].index, y=prop, data=data_val[metric])
-                plt.savefig(path_datetime+'/val_'+prop+'_'+metric+'.svg',format='svg', dpi=1000, bbox_inches='tight')
+                fixbarplots(ax, data_val, prop, 0.5, metric, metrics_symbols)
+                plt.savefig(path_datetime+'/val_'+prop+'_'+metric+'.pdf',format='pdf', dpi=1000, bbox_inches='tight')
                 plt.close()
             if 'Train' in args.useSet:
                 ax = sns.barplot(x=data_train[metric].index, y=prop, data=data_train[metric])
-                plt.savefig(path_datetime+'/train_'+prop+'_'+metric+'.svg',format='svg', dpi=1000, bbox_inches='tight')
+                fixbarplots(ax, data_train, prop, 0.5, metric, metrics_symbols)
+                plt.savefig(path_datetime+'/train_'+prop+'_'+metric+'.pdf',format='pdf', dpi=1000, bbox_inches='tight')
                 plt.close()
             
     print(data_test)
@@ -235,7 +251,7 @@ if args.mode == 'boxplots':
         ax.set_xticklabels(labels)
         # figManager = plt.get_current_fig_manager()
         # figManager.window.showMaximized()
-        plt.savefig(path_datetime+'/'+prop+'.svg',format='svg', dpi=1000, bbox_inches='tight')
+        plt.savefig(path_datetime+'/'+prop+'.pdf',format='pdf', dpi=1000, bbox_inches='tight')
         plt.close()
          
 
@@ -273,6 +289,6 @@ if args.mode=='parameterDiagram':
     # dataframe_val_rmse = pnd.DataFrame(data=mean_val_rmse, columns=columns).transpose()
     # dataframe_val_rpiq = pnd.DataFrame(data=mean_val_rpiq, columns=columns).transpose()
     # dataframe_val_determ = pnd.DataFrame(data=mean_val_determ, columns=columns).transpose()
-    extractDiagram(values_x, mean_val_rmse, args.parameterName, 'Validation RMSE', path_datetime+'/RMSE_'+args.parameterSymbol+'.svg')
-    extractDiagram(values_x, mean_val_rpiq, args.parameterName, 'Validation RPIQ', path_datetime+'/RPIQ_'+args.parameterSymbol+'.svg')
-    extractDiagram(values_x, mean_val_determ, args.parameterName, 'Validation R^2', path_datetime+'/Determ_'+args.parameterSymbol+'.svg')
+    extractDiagram(values_x, mean_val_rmse, args.parameterName, 'Validation RMSE', path_datetime+'/RMSE_'+args.parameterSymbol+'.pdf')
+    extractDiagram(values_x, mean_val_rpiq, args.parameterName, 'Validation RPIQ', path_datetime+'/RPIQ_'+args.parameterSymbol+'.pdf')
+    extractDiagram(values_x, mean_val_determ, args.parameterName, 'Validation R^2', path_datetime+'/Determ_'+args.parameterSymbol+'.pdf')

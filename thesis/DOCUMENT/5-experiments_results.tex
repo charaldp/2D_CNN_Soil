@@ -3,7 +3,7 @@
 
 \section{Υλικό διεξαγωγής πειραμάτων}
 Για την εκτέλεση κώδικα με σκοπό την διεξαγωγή πειραμάτων απαιτείται η χρήση υπολογιστή ή μιας υπολογιστικής μονάδας. Στην υλοποίηση που απαιτείται για το αντικείμενο της συγκεκριμένης εργασίας ορισμένες διαδικασίες είναι αρκετά περίπλοκες και χρήζουν μεγάλης υπολογιστικής ισχύος. Οι διαδικασίες αυτές είναι η ανάγνωση και προεπεξεργασία των δεδομένων, η εξαγωγή των σπεκτροραμμάτων από τις φασματικές υπογραφές και το πιο σύνθετο η εκπαίδευση δισδιάστατων συνελικτικών νευρωνικών δικτύων.
-Τα αποτελέσματα εξήχθησαν με χρήση της ιδρυματικής συστοιχίας του Α.Π.Θ. \cite{hpcauth} όπου η διαδικασία της εκπαίδευσης επιταγχύνεται με μια κάρτα γραφικών $NVIDIA~Tesla~P100$. Επίσης έγινε χρήση του προσωπικού υπολογιστή για κάποια από τα τελευταία πειράματα με τη χρήση κάρτας γραφικών $NVIDIA~RTX-2060$
+Τα αποτελέσματα έχουν εξαχθεί αξιοποιώντας την Υπολογιστική Συστοιχία και τις παρεχόμενες υπηρεσίες υποστήριξης του Κέντρου Ηλεκτρονικής Διακυβέρνησης του Α.Π.Θ. \cite{hpcauth}, όπου η διαδικασία της εκπαίδευσης των μοντέλων επιταγχύνεται με μια κάρτα γραφικών $NVIDIA~Tesla~P100$. Επίσης έγινε χρήση του προσωπικού υπολογιστή για κάποια από τα τελευταία πειράματα με τη χρήση κάρτας γραφικών $NVIDIA~RTX-2060$
 
 \section{Επίδοση μοντέλων με χρήση μετασχηματισμών της εισόδου \tl{Abs-SG1 -- Reflectance spectrograms}}
 Η χρήση των σπεκτρογραμμάτων που προκύπτουν από την ανακλαστικότητα \tl{Reflectance} του εδάφους παρατηρείται και στην προτεινόμενη υλοποίηση, ωστόσο έπειτα από δοκιμές χρήσης διαφόρων μετασχηματισμών της εισόδου στο μοντέλο παρατηρήθηκε πως η χρήση της 1ης παραγώγου του μετασχηματισμού \tl{Savitzky-Golay} έχει καλύτερες επιδόσεις για την ιδιότητα του \tl{pH} στο νερό, ενώ ελαφρώς χειρότερη επίδοση από το μοντέλο που χρησιμοποιεί τα σπεκτρογράμματα από ανακλαστικότητα για τις υπόλοιπες ιδιότητες \tl{Organic Carbon, Nitrogen, Cation Exchange Capacity, Clay, Sand}.
@@ -16,38 +16,122 @@
 \section{Επίδοση μοντέλων πολλαπλών εξόδων -- μιας εξόδου}
 Η απόπειρα πρόβλεψης πολλαπλών ιδιοτήτων με τη χρήση ενός μοντέλου, απαιτεί μια πολυπλοκότερη διαδικασία εκπαίδευσης λόγω του μεγέθους του νέου μοντέλου. Το αποτέλεσμα ωστόσο είναι ικανοποιητικό. Παρόλο που παρατηρείται μια ελαφρώς χειρότερη επίδοση για όλες τις εξόδους, η προβλέψεις του μοντέλου είναι κοντά σε αυτές των μοντέλων πρόβλεψης μιας ιδιότητας εδάφους, πράγμα που δείχνει πως η διαδικασία εκπαίδευσης ενός ξεχωριστού μοντέλου για κάθε ιδιότητα είναι σπάταλη. Αυτό διαπιστώνεται με την διαφορά στον χρόνο εκπαίδευσης των 2 ειδών μοντέλων, αλλά λόγω την πρακτική της εξαγωγής αποτελεσμάτων, επειδή χρειάζονται τόσα διαφορετικά μοντέλα όσες και οι ιδιότητες που προβλέπονται. Ωστόσο το πλήθος των παραμέτρων είναι ανάλογο του αριθμού των εξόδων του μοντέλου, σε σχέση με ένα μοντέλο μιας εξόδου.
 
-\begin{figure}[htbp]
+\begin{figure}[H]
     \begin{subfigure}{0.5\textwidth}
-        \includesvg[width=1\linewidth]{RESULTS/OC}
+        \includegraphics[width=1\linewidth]{RESULTS/BOXPLOTS/OC.pdf}
         \caption{Σύγκριση μοντέλων για την ιδιότητα του οργανικού άνθρακα}
         \label{fig:subim1}
     \end{subfigure}
     \begin{subfigure}{0.5\textwidth}
-        \includesvg[width=1\linewidth]{RESULTS/CEC}
+        \includegraphics[width=1\linewidth]{RESULTS/BOXPLOTS/CEC.pdf}
         \caption{Σύγκριση μοντέλων για την ιδιότητα της ικανότητας ανταλλαγής κατιόντων}
         \label{fig:subim2}
     \end{subfigure}
+\end{figure}
+\begin{figure}[H]
     \begin{subfigure}{0.5\textwidth}
-        \includesvg[width=1\linewidth]{RESULTS/Clay}
+        \includegraphics[width=1\linewidth]{RESULTS/BOXPLOTS/Clay.pdf}
         \caption{Σύγκριση μοντέλων για την ιδιότητα την περιεκτικότητα σε άργιλο}
         \label{fig:subim3}
     \end{subfigure}
     \begin{subfigure}{0.5\textwidth}
-        \includesvg[width=1\linewidth]{RESULTS/Sand}
+        \includegraphics[width=1\linewidth]{RESULTS/BOXPLOTS/Sand.pdf}
         \caption{Σύγκριση μοντέλων για την ιδιότητα την περιεκτικότητα σε άμμο}
         \label{fig:subim4}
     \end{subfigure}
+\end{figure}
+\begin{figure}[H]
     \begin{subfigure}{0.5\textwidth}
-        \includesvg[width=1\linewidth]{RESULTS/pH}
+        \includegraphics[width=1\linewidth]{RESULTS/BOXPLOTS/pH.pdf}
         \caption{Σύγκριση μοντέλων για την ιδιότητα την περιεκτικότητα του \tl{pH} στο νερό}
         \label{fig:subim5}
     \end{subfigure}
     \begin{subfigure}{0.5\textwidth}
-        \includesvg[width=1\linewidth]{RESULTS/N}
+        \includegraphics[width=1\linewidth]{RESULTS/BOXPLOTS/N.pdf}
         \caption{Σύγκριση μοντέλων για την ιδιότητα της περιεκτικότητας του αζώτου στο έδαφος}
         \label{fig:subim6}
     \end{subfigure}
-    \caption{Σύγκριση των προτεινόμενων μοντέλων \tl{SI-SO} μιας εισόδου --- μιας εξόδου και \tl{SI-MO} μιας εισόδου --- πολλαπλών εξόδων με τα πειραματικά με ελαχιστοποιημένη αρχιτεκτονική \tl{MI-MO} πολλαπλών εισόδων --- πολλαπλών εξόδων, \tl{MI-SO} πολλαπλών εισόδων --- μιας εξόδου, με βάση την μετρική \tl{RMSE}}
+\end{figure}
+\begin{figure}[H]
+    \begin{subfigure}{0.5\textwidth}
+        \includegraphics[width=1\linewidth]{RESULTS/BOXPLOTS/CaCO3.pdf}
+        \caption{Σύγκριση μοντέλων για την ιδιότητα την περιεκτικότητα ανθρακικού ασβεστίου στο έδαφος}
+        \label{fig:subim7}
+    \end{subfigure}
+    \begin{subfigure}{0.5\textwidth}
+        \includegraphics[width=1\linewidth]{RESULTS/BOXPLOTS/P.pdf}
+        \caption{Σύγκριση μοντέλων για την ιδιότητα της περιεκτικότητας του φωσφόρου στο έδαφος}
+        \label{fig:subim8}
+    \end{subfigure}
+\end{figure}
+\begin{figure}[H]
+    \begin{subfigure}{0.5\textwidth}
+        \includegraphics[width=1\linewidth]{RESULTS/BOXPLOTS/K.pdf}
+        \caption{Σύγκριση μοντέλων για την ιδιότητα την περιεκτικότητα του καλίου στο έδαφος}
+        \label{fig:subim9}
+    \end{subfigure}
+    \begin{subfigure}{0.5\textwidth}
+        
+    \end{subfigure}
+\end{figure}
+
+\begin{figure}[H]
+    \begin{subfigure}{0.5\textwidth}
+        \includegraphics[width=1\linewidth]{RESULTS/BARPLOTS/test_OC_determ.pdf}
+        \caption{Σύγκριση μοντέλων για την ιδιότητα του οργανικού άνθρακα}
+        \label{fig:subim1}
+    \end{subfigure}
+    \begin{subfigure}{0.5\textwidth}
+        \includegraphics[width=1\linewidth]{RESULTS/BARPLOTS/test_CEC_determ.pdf}
+        \caption{Σύγκριση μοντέλων για την ιδιότητα της ικανότητας ανταλλαγής κατιόντων}
+        \label{fig:subim2}
+    \end{subfigure}
+\end{figure}
+\begin{figure}[H]
+    \begin{subfigure}{0.5\textwidth}
+        \includegraphics[width=1\linewidth]{RESULTS/BARPLOTS/test_Clay_determ.pdf}
+        \caption{Σύγκριση μοντέλων για την ιδιότητα την περιεκτικότητα σε άργιλο}
+        \label{fig:subim3}
+    \end{subfigure}
+    \begin{subfigure}{0.5\textwidth}
+        \includegraphics[width=1\linewidth]{RESULTS/BARPLOTS/test_Sand_determ.pdf}
+        \caption{Σύγκριση μοντέλων για την ιδιότητα την περιεκτικότητα σε άμμο}
+        \label{fig:subim4}
+    \end{subfigure}
+\end{figure}
+\begin{figure}[H]
+    \begin{subfigure}{0.5\textwidth}
+        \includegraphics[width=1\linewidth]{RESULTS/BARPLOTS/test_pH_determ.pdf}
+        \caption{Σύγκριση μοντέλων για την ιδιότητα την περιεκτικότητα του \tl{pH} στο νερό}
+        \label{fig:subim5}
+    \end{subfigure}
+    \begin{subfigure}{0.5\textwidth}
+        \includegraphics[width=1\linewidth]{RESULTS/BARPLOTS/test_N_determ.pdf}
+        \caption{Σύγκριση μοντέλων για την ιδιότητα της περιεκτικότητας του αζώτου στο έδαφος}
+        \label{fig:subim6}
+    \end{subfigure}
+\end{figure}
+\begin{figure}[H]
+    \begin{subfigure}{0.5\textwidth}
+        \includegraphics[width=1\linewidth]{RESULTS/BARPLOTS/test_CaCO3_determ.pdf}
+        \caption{Σύγκριση μοντέλων για την ιδιότητα την περιεκτικότητα ανθρακικού ασβεστίου στο έδαφος}
+        \label{fig:subim7}
+    \end{subfigure}
+    \begin{subfigure}{0.5\textwidth}
+        \includegraphics[width=1\linewidth]{RESULTS/BARPLOTS/test_P_determ.pdf}
+        \caption{Σύγκριση μοντέλων για την ιδιότητα της περιεκτικότητας του φωσφόρου στο έδαφος}
+        \label{fig:subim8}
+    \end{subfigure}
+\end{figure}
+\begin{figure}[H]
+    \begin{subfigure}{0.5\textwidth}
+        \includegraphics[width=1\linewidth]{RESULTS/BARPLOTS/test_K_determ.pdf}
+        \caption{Σύγκριση μοντέλων για την ιδιότητα την περιεκτικότητα του καλίου στο έδαφος}
+        \label{fig:subim9}
+    \end{subfigure}
+    \begin{subfigure}{0.5\textwidth}
+        
+    \end{subfigure}
 \end{figure}
 
 \section{Επιρροή του λόγου οριζόντιας προς κατακόρυφης διάστασης --- ανώτατο όριο αύξησης}
@@ -61,7 +145,7 @@
   \end{center}
 \end{figure}
 
-Όπως φαίνεται στο παραπάνω διάγραμμα
+Όπως φαίνεται στο παραπάνω διάγραμμα, όταν η παράμετρος που ορίζει τον λόγο των διαστάσεων της εικόνας εισόδου, είναι στο εύρος τιμών 0.77 με 0.8 οι επιδόσεις του μοντέλου είναι κατά μέσο όρο μεγαλύτερες. Έτσι η τμή που επιλέχθηκε για τη συγκεκριμένη παράμετρο είναι το 0.8 καθώς παρουσιάζει την μέγιστη μέση επίδοση για τον συντελεστή προσδιορισμού όλων των εδαφικών ιδιοτήτων.
 
 \section{Μείωση πλήθους \tl{Layers}}
 Ένας από τους λόγους για τους οποίους η αρχιτεκτονική του μοντέλου των \tl{Padarian J. et al} θεωρείται μη αποτελεσματική είναι ότι χρησιμοποιεί μεγάλο πλήθος επιπέδων. Πέρα από την επιρροή του αριθμού των επιπέδων στο μέγεθός των παραμέτρων του μοντέλου, η συγκεκριμένη αποτελεί μια παράμετρο η οποία δοκιμάστηκε σε διάφορες μορφές της μέσα στην αρχιτεκτονική του δισδιάστατου συνελικτικού νευρωνικού δικτύου όπως στο πλήθος των συνελικτικών επιπέδων που χρησιμοποιούνται ή το πλήθος των πλήρων συνδεδεμένων επιπέδων\\
@@ -89,19 +173,26 @@
   \end{center}
 \end{figure}
 
-\begin{figure}[htbp]
-    \begin{subfigure}{0.5\textwidth}
-        \includesvg[width=1\linewidth]{RESULTS/model_layer_1_OC_conv2d_4}
-        \caption{Πραγματικές τιμές}
-        \label{fig:subim1}
-    \end{subfigure}
-    \begin{subfigure}{0.5\textwidth}
-        \includesvg[width=1\linewidth]{RESULTS/model_layer_1_OC_conv2d_4_standarized}
-        \caption{Κανονικοποιημένες τιμές}
-        \label{fig:subim1}
-    \end{subfigure}
-    \caption{Μορφή της εξόδου του πρώτου δισδιάστατου συνελικτικού επιπέδου. Έξοδος για τα πρώτα 18 \tl{Feature Maps}}
-\end{figure}
+%\begin{figure}[htbp]
+%    \begin{subfigure}{0.5\textwidth}
+        %\includesvg[width=1\linewidth]{RESULTS/model_layer_1_OC_conv2d_4}
+        %\caption{Πραγματικές τιμές}
+        %\label{fig:subim1}
+%    \end{subfigure}
+%    \begin{subfigure}{0.5\textwidth}
+        %\includesvg[width=1\linewidth]{RESULTS/model_layer_1_OC_conv2d_4_standarized}
+        %\caption{Κανονικοποιημένες τιμές}
+        %\label{fig:subim1}
+%    \end{subfigure}
+%    \caption{Μορφή της εξόδου του πρώτου δισδιάστατου συνελικτικού επιπέδου. Έξοδος για τα πρώτα 18 \tl{Feature %Maps}}
+%\end{figure}
+%
+%\begin{figure}[H]
+%  \begin{center}
+%    \includesvg[width=0.3\textwidth]{RESULTS/model_layer_1_OC_conv2d_4_kernels}
+%    \caption{Μορφή των συνελικιτκών φίλτρων που χρησιμοποιήθηκαν από το πρώτο δισδιάστατο συνελικτικό επιπέδο. %Φαίνονται τα  18 πρώτα φίλτρα}
+%  \end{center}
+%\end{figure}
 
 \begin{figure}[htbp]
     \begin{subfigure}{0.7\textwidth}
@@ -121,13 +212,6 @@
         \caption{Μορφή των συνελικιτκών φίλτρων που χρησιμοποιήθηκαν από το πρώτο δισδιάστατο συνελικτικό επιπέδο. Φαίνονται τα  18 πρώτα φίλτρα}
     \end{subfigure}
     \caption{Μορφή της εξόδου του πρώτου δισδιάστατου συνελικτικού επιπέδου. Έξοδος για τα πρώτα 18 \tl{Feature Maps}}
-\end{figure}
-
-\begin{figure}[H]
-  \begin{center}
-    \includesvg[width=0.3\textwidth]{RESULTS/model_layer_1_OC_conv2d_4_kernels}
-    \caption{Μορφή των συνελικιτκών φίλτρων που χρησιμοποιήθηκαν από το πρώτο δισδιάστατο συνελικτικό επιπέδο. Φαίνονται τα  18 πρώτα φίλτρα}
-  \end{center}
 \end{figure}
 
 \begin{figure}[htbp]
@@ -172,26 +256,47 @@
     \caption{Μορφή της εξόδου μετά την συνάρτηση ενεργοποίησης \tl{ReLU} του πρώτου επιπέδου και της εφαρμογής συγκέντρωσης μεγίστων. Έξοδος για τα πρώτα 18 \tl{Feature Maps}}
 \end{figure}
 
+
 \begin{figure}[htbp]
-    \begin{subfigure}{0.5\textwidth}
-        \includesvg[width=1\linewidth]{RESULTS/model_layer_5_OC_conv2d_5}
-        \caption{Πραγματικές τιμές}
-        \label{fig:subim7}
+    \begin{subfigure}{0.7\textwidth}
+        \begin{subfigure}{\textwidth}
+            \includesvg[width=1\linewidth]{RESULTS/model_layer_5_OC_conv2d_5}
+            \caption{Πραγματικές τιμές}
+            \label{fig:subim1}
+        \end{subfigure}
+        \begin{subfigure}{\textwidth}
+            \includesvg[width=1\linewidth]{RESULTS/model_layer_5_OC_conv2d_5_standarized}
+            \caption{Κανονικοποιημένες τιμές}
+            \label{fig:subim1}
+        \end{subfigure}
     \end{subfigure}
-    \begin{subfigure}{0.5\textwidth}
-        \includesvg[width=1\linewidth]{RESULTS/model_layer_5_OC_conv2d_5_standarized}
-        \caption{Κανονικοποιημένες τιμές}
-        \label{fig:subim8}
+    \begin{subfigure}{0.3\textwidth}
+        \includesvg[width=\textwidth]{RESULTS/model_layer_5_OC_conv2d_5_kernels}
+        \caption{Μορφή των συνελικιτκών φίλτρων που χρησιμοποιήθηκαν από το δεύτερο δισδιάστατο συνελικτικό επιπέδο. Φαίνονται τα  18 πρώτα φίλτρα}
     \end{subfigure}
     \caption{Μορφή της εξόδου του δευτερου δισδιάστατου συνελικτικού επιπέδου. Έξοδος για τα πρώτα 18 \tl{Feature Maps}}
 \end{figure}
 
-\begin{figure}[H]
-  \begin{center}
-    \includesvg[width=0.3textwidth]{RESULTS/model_layer_5_OC_conv2d_5_kernels}
-    \caption{Μορφή των συνελικιτκών φίλτρων που χρησιμοποιήθηκαν από το δεύτερο δισδιάστατο συνελικτικό επιπέδο. Φαίνονται τα  18 πρώτα φίλτρα}
-  \end{center}
-\end{figure}
+%\begin{figure}[htbp]
+    %\begin{subfigure}{0.5\textwidth}
+        %\includesvg[width=1\linewidth]{RESULTS/model_layer_5_OC_conv2d_5}
+        %\caption{Πραγματικές τιμές}
+        %\label{fig:subim7}
+    %\end{subfigure}
+    %\begin{subfigure}{0.5\textwidth}
+        %\includesvg[width=1\linewidth]{RESULTS/model_layer_5_OC_conv2d_5_standarized}
+        %\caption{Κανονικοποιημένες τιμές}
+        %\label{fig:subim8}
+    %\end{subfigure}
+    %\caption{Μορφή της εξόδου του δευτερου δισδιάστατου συνελικτικού επιπέδου. Έξοδος για τα πρώτα 18 %\tl{Feature Maps}}
+%\end{figure}
+%
+%\begin{figure}[H]
+  %\begin{center}
+%    \includesvg[width=0.3\textwidth]{RESULTS/model_layer_5_OC_conv2d_5_kernels}
+%    \caption{Μορφή των συνελικιτκών φίλτρων που χρησιμοποιήθηκαν από το δεύτερο δισδιάστατο συνελικτικό επιπέδο. Φαίνονται τα  18 πρώτα φίλτρα}
+  %\end{center}
+%\end{figure}
 
 \begin{figure}[htbp]
     \begin{subfigure}{0.5\textwidth}
