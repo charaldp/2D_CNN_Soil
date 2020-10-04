@@ -499,7 +499,7 @@ class SoilModel(object):
 			plt.xlabel('Epoch')
 			plt.legend(['Train', 'Validation'], loc='upper right')
 			plt.grid(linestyle=':')
-			plt.savefig(self.__fold_path+'/model_'+self.__prop+'_loss.eps',format='eps',dpi=1000,bbox_inches='tight')
+			plt.savefig(self.__fold_path+'/model_'+self.__prop+'_loss.pdf',format='pdf',dpi=1000,bbox_inches='tight')
 			plt.close()
 
 		model_weights = self.__fold_path+'/'+self.__prop+'_weights.hdf5'
@@ -609,7 +609,7 @@ class SoilModel(object):
 				plt.xlabel('Epoch')
 				plt.legend(['Train', 'Validation'], loc='upper right')
 				plt.grid(linestyle=':')
-				plt.savefig(self.__fold_path+'/model_'+name+'.eps',format='eps',dpi=1000,bbox_inches='tight')
+				plt.savefig(self.__fold_path+'/model_'+name+'.pdf',format='pdf',dpi=1000,bbox_inches='tight')
 				plt.close()
 
 		model = self.createModelMulti(False)
