@@ -15,11 +15,14 @@ def parse_args():
     # Required
     parser.add_argument('-n','--name',type=str, help='A specific name for the plot group',default='diag')
     parser.add_argument('-fld','--folders',type=str, help='Model folders to process',default=[''], nargs='+')
-    parser.add_argument('-md','--mode',type=str, help='Mode to use script 1) \'metrics\' ',default='metrics')
+    parser.add_argument('-md','--mode',type=str, help='Mode to use script 1) metrics 2) boxplots 3) parameterDiagram ',default='metrics')
+    parser.add_argument('-mtrc','--metrics',type=str, help='Metrics to use',default=['rmse'], nargs='+')
     parser.add_argument('-mn','--modelNames',type=str, help='Model names to identify each folder on plots',default=[], nargs='+')
     parser.add_argument('-pv','--parameterValues',type=float, help='Values of parameter used for horizontal axis',default=[], nargs='+')
     parser.add_argument('-pn','--parameterName',type=str, help='Name of parameter used',default='V/H Ratio')
     parser.add_argument('-ps','--parameterSymbol',type=str, help='Name of parameter used',default='v_h')
+    parser.add_argument('-set','--useSet',type=str, help='Set of dataset to use',default=['Test'], nargs='+')
+    parser.add_argument('-prt','--properties',type=str, help='Properties to examine',default=['OC'], nargs='+')
     
     args = parser.parse_args()
     return args
@@ -57,54 +60,95 @@ print(args)
 print(args.modelNames)
 # exit()
 if args.mode == 'metrics':
+    if 'Test' in args.useSet:
+        data_test = {}
+        for prop in args.properties:
+            data_test[prop] = {}
+        for prop in data_test:
+            for metric in args.metrics:
+                data_test[prop][metric] = []
+    if 'Val' in args.useSet:
+        data_val = {}
+        for prop in args.properties:
+            data_val[prop] = {}
+        for prop in data_val:
+            for metric in args.metrics:
+                data_val[prop][metric] = []
+    if 'Train' in args.useSet:
+        data_train = {}
+        for prop in args.properties:
+            data_train[prop] = {}
+        for prop in data_train:
+            for metric in args.metrics:
+                data_train[prop][metric] = []
+    props = []
     for folder in args.folders:
-        data = pnd.read_csv(folder+'/metrics.csv')
+        data = pnd.read_csv(folder+'/metrics.csv', index_col=0)
         properties = data.columns
-        datrans = data.T
+        # datrans = data.T
         print('properties', properties)
-        print('datrans', datrans)
-        exit()
-        fig, ax = plt.subplots()
+        print('data')
+        print(data)
+        for prop in args.properties:
+            if 'Test' in args.useSet:
+                for metric in args.metrics:
+                    data_test[prop][metric].append(data[prop]['test_'+metric])
+            if 'Val' in args.useSet:
+                for metric in args.metrics:
+                    data_val[prop][metric].append(data[prop]['val_'+metric])
+            if 'Train' in args.useSet:
+                for metric in args.metrics:
+                    data_train[prop][metric].append(data[prop]['train_'+metric])
+    
+    print(data_test)
+    exit()
+    fig, ax = plt.subplots()
 
-        labels = ['G1', 'G2', 'G3', 'G4', 'G5']
-        men_means = [20, 34, 30, 35, 27]
-        women_means = [25, 32, 34, 20, 25]
+    labels = ['G1', 'G2', 'G3', 'G4', 'G5']
+    men_means = [20, 34, 30, 35, 27]
+    women_means = [25, 32, 34, 20, 25]
 
-        x = np.arange(len(properties))  # the label locations
-        width = 0.35  # the width of the bars
+    x = np.arange(len(properties))  # the label locations
+    width = 0.35  # the width of the bars
 
-        fig, ax = plt.subplots()
-        rects = []
-        pos = 4
-        rects.append(ax.bar(x - width/2, men_means, width, label='Men'))
-        rects1 = ax.bar(x - width/2, men_means, width, label='Men')
-        rects2 = ax.bar(x + width/2, women_means, width, label='Women')
+    fig, ax = plt.subplots()
+    rects = []
+    pos = 4
+    rects.append(ax.bar(x - width/2, men_means, width, label='Men'))
+    rects1 = ax.bar(x - width/2, men_means, width, label='Men')
+    rects2 = ax.bar(x + width/2, women_means, width, label='Women')
 
-        # Add some text for labels, title and custom x-axis tick labels, etc.
-        ax.set_ylabel('Scores')
-        ax.set_title('Scores by group and gender')
-        ax.set_xticks(x)
-        ax.set_xticklabels(labels)
-        ax.legend()
+    # Add some text for labels, title and custom x-axis tick labels, etc.
+    ax.set_ylabel('Scores')
+    ax.set_title('Scores by group and gender')
+    ax.set_xticks(x)
+    ax.set_xticklabels(labels)
+    ax.legend()
 
-        autolabel(rects1)
-        autolabel(rects2)
+    autolabel(rects1)
+    autolabel(rects2)
 
-        fig.tight_layout()
+    fig.tight_layout()
 
-        plt.show()
+    plt.show()
 
 if args.mode == 'boxplots':
-    data_test = []
-    data_val = []
-    data_train = []
+    if 'Test' in args.useSet:
+        data_test = []
+    if 'Val' in args.useSet:
+        data_val = []
+    if 'Train' in args.useSet:
+        data_train = []
     props = []
-    center_offset = 3.24
+    center_offset = 0.24 + len(args.useSet)
     for j, folder in enumerate(args.folders):
         print(folder+'/test_predictions.csv')
-        data_test.append(pnd.read_csv(folder+'/test_predictions.csv', index_col=False))
-        data_val.append(pnd.read_csv(folder+'/val_predictions.csv', index_col=False))
-        data_train.append(pnd.read_csv(folder+'/train_predictions.csv', index_col=False))
+        if 'Test' in args.useSet:
+            data_test.append(pnd.read_csv(folder+'/test_predictions.csv', index_col=False))
+        if 'Val' in args.useSet:
+            data_val.append(pnd.read_csv(folder+'/val_predictions.csv', index_col=False))
+        if 'Train' in args.useSet:
+            data_train.append(pnd.read_csv(folder+'/train_predictions.csv', index_col=False))
         # Search for properties at each new folder
         cols = data_test[0].columns
         for col in cols:
@@ -118,17 +162,23 @@ if args.mode == 'boxplots':
         labels = []
         bplots = []
         fig, ax = plt.subplots()
-        ax.set_title(prop+' Test-Val-Train RMSE')
+        sets_char = ''
+        for set_char in args.useSet:
+            sets_char = sets_char+set_char+'-'
+        ax.set_title(prop+' '+sets_char+'RMSE')
         for j, folder in enumerate(args.folders):
             # fig, axs = plt.subplots(nrows=2, ncols=3, figsize=(6, 6), sharey=True)
             # axs[1, 2].bxp(stats, showfliers=False)
             # axs[1, 2].set_title('showfliers=False', fontsize=fs)
             if prop+'_test_preds' in data_test[j]:
-                errors_test = np.absolute(data_test[j][prop+'_test_preds'] - data_test[j][prop+'_test_actuals'])
-                errors_val = np.absolute(data_val[j][prop+'_val_preds'] - data_val[j][prop+'_val_actuals'])
-                errors_train = np.absolute(data_train[j][prop+'_train_preds'] - data_train[j][prop+'_train_actuals'])
+                if 'Test' in args.useSet:
+                    errors_test = np.absolute(data_test[j][prop+'_test_preds'] - data_test[j][prop+'_test_actuals'])
+                if 'Val' in args.useSet:
+                    errors_val = np.absolute(data_val[j][prop+'_val_preds'] - data_val[j][prop+'_val_actuals'])
+                if 'Train' in args.useSet:
+                    errors_train = np.absolute(data_train[j][prop+'_train_preds'] - data_train[j][prop+'_train_actuals'])
                 # labels.append('')
-                labels.append(args.modelNames[j]+' '+prop)
+                labels.append(args.modelNames[j])# +' '+prop
                 # labels.append('')
                 # labels.append(args.modelNames[j]+' '+prop+'_val')
                 # labels.append(args.modelNames[j]+' '+prop+'_train')
@@ -136,22 +186,27 @@ if args.mode == 'boxplots':
             # print('N_test_actuals', data_test['N_test_actuals'],)
             # print('errors', errors)
             data = []
-            data.append(errors_test)
-            data.append(errors_val)
-            data.append(errors_train)
+            if 'Test' in args.useSet:
+                data.append(errors_test)
+            if 'Val' in args.useSet:
+                data.append(errors_val)
+            if 'Train' in args.useSet:
+                data.append(errors_train)
             pos = center_offset*j
             # ax = sns.boxplot(x="day", y="total_bill", hue="smoker", data=tips, palette="Set3")
-            bplots.append(ax.boxplot(data, positions=[pos+1, pos+2, pos+3], showfliers=False, patch_artist=True, widths=0.6))
+            positions_1 = [pos+i for i in range(1, 1+len(args.useSet))]
+            bplots.append(ax.boxplot(data, positions=positions_1, showfliers=False, patch_artist=True, widths=0.6))
         
 
         colors = ['lightblue', 'orange', 'lightgreen']
         for bplot in bplots:
             for j, patch in enumerate(bplot['boxes']):
-                patch.set_facecolor(colors[j%3])
+                patch.set_facecolor('lightblue')
+                # patch.set_facecolor(colors[j%3])
 
-        ax.legend([bplots[0]["boxes"][0], bplots[0]["boxes"][1], bplots[0]["boxes"][2]],  ['Test', 'Validation', 'Training'], loc='upper right')
+        # ax.legend([bplots[0]["boxes"][0], bplots[0]["boxes"][1], bplots[0]["boxes"][2]],  ['Test', 'Validation', 'Training'], loc='upper right')
         # plt.show()
-        positions = np.arange(2, center_offset * len(labels) + 1, center_offset)
+        positions = np.arange(1, center_offset * (len(labels)) + 1, center_offset)
         ax.set_xticks(positions)
         ax.set_xticklabels(labels)
         # figManager = plt.get_current_fig_manager()
