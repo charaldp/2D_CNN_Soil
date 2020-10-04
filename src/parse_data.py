@@ -150,7 +150,7 @@ if args.singleOutput:# == "single" or model_type == "single_multi":
             y_test_preds = []
             y_val_actuals = []
             y_val_preds = []
-            for fold in range(len(data_parser.cal_folds)): # Number of internal folds
+            for fold in range(args.folds): # Number of internal folds
                 print("==========| FOLD "+str(fold+1)+", on "+out_name+" |==========")
                 [trn, val] = data_parser.k_fold(fold)
                 if args.singleInput: 
@@ -268,7 +268,7 @@ if not args.singleOutput:#model_type == "multi" or model_type == "single_multi":
             y_test_preds.append([])
             y_val_actuals.append([])
             y_val_preds.append([])
-        for fold in range(len(data_parser.cal_folds)):
+        for fold in range(args.folds):
             [trn, val] = data_parser.k_fold(fold)
             if args.singleInput: 
                 x_trn = [x[i] for i in trn]
