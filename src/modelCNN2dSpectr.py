@@ -176,6 +176,8 @@ class SoilModel(object):
 		self.__input_shape = tuple([input_shape[0], input_shape[1], 1])
 		self.__layer_visualization = initialization_options.layerVisualization
 		self.__visualization_layers_number = int(initialization_options.visualizationLayersNumber)
+		self.__spectrogram_extraction_view = initialization_options.spectrogramExtractionView
+		
 
 		if initialization_options.singleOutput:
 			self.__prop = prop
@@ -271,26 +273,37 @@ class SoilModel(object):
 			x_spectrograms.append(x_spectrogram)
 		return x_spectrograms
 
-	def extractSpectrogram(self, x_in_spectra, path, mode, v_to_h_ratio, input_shape ):
+	def extractSpectrogram(self, x_in_spectra, path, mode ):
 		if mode=='minus_1_1':
 			num = 25
 		elif mode=='one_zero':
 			num = 50
-		mi = int(self.__v_to_h_ratio * 100 / (0.5 + self.__undersampling / 2))
-		nover = int(self.__v_to_h_ratio * 50 / (0.5 + self.__undersampling / 2))
-		window = self.getWindow(mi)
+		mi = self.getM()
+		nover = self.getNover()
+		window = self.getWindow()
 		x_in_spectra = np.array(x_in_spectra)
-		x_spectrogram = np.empty(shape=(x_in_spectra.shape[0],input_shape[0],input_shape[1],1))
-		i = 0
+		x_spectrogram = np.empty(shape=(x_in_spectra.shape[0],self.__input_shape[0],self.__input_shape[1],1))
+		i = 5
 		while i < x_in_spectra.shape[0]:
 			[x, t, spec] = signal.spectrogram(x = x_in_spectra[i], fs = 1,window = window, nperseg = mi, noverlap = nover)
-			plt.pcolormesh(t, x, (np.log(np.abs(spec)) + num) / num)
+			# dtfr = pnd.DataFrame({'Frequency': x, 'Wavelength': t})
+			dtfr = pnd.DataFrame((np.log(np.abs(spec)) + num) / num)
+			print(dtfr)
+			plt.imshow((np.log(np.abs(spec)) + num) / num, cmap='viridis', aspect='equal')
+				# t, x, (np.log(np.abs(spec)) + num) / num, cmap='viridis')
 			plt.title('Spectrogtam Magnitude')
 			plt.ylabel('Frequency')
 			plt.xlabel('Wavelength')
-			plt.savefig(path+'/Spectrogram'+str(i))
+			plt.savefig(path+'/Spectrogram_'+str(i)+'.pdf', format='pdf', dpi=1000, bbox_inches='tight')
 			plt.close()
-			i += 15
+			# sns.lineplot(data=pnd.DataFrame(x_in_spectra[i]))
+			plt.plot(x_in_spectra[i])
+			plt.title('')
+			plt.ylabel('Reflectance Amplitude')
+			plt.xlabel('Wavelength')
+			plt.savefig(path+'/Reflectance_'+str(i)+'.pdf', format='pdf', dpi=1000, bbox_inches='tight')
+			plt.close()
+			i += x_in_spectra.shape[0]
 
 	def outputAtNormalRange(self, y, mode, prop = ''):
 		if self.__initialization_options.singleOutput:
@@ -452,7 +465,8 @@ class SoilModel(object):
 			x_train_spec = self.spectraToSpectrogramMulti(x_in_train, input_mode)
 			x_val_spec = self.spectraToSpectrogramMulti(x_in_val, input_mode)
 			x_test_spec = self.spectraToSpectrogramMulti(x_in_test, input_mode)
-		# extractSpectrogram(x_in_train, self.__fold_path, input_mode, v_to_h_ratio, input_shape)
+		if self.__spectrogram_extraction_view:
+			self.extractSpectrogram(x_in_train, self.__fold_path, input_mode)
 
 		# Normalize output properties at range [-1, 1]
 		y_train = self.outputAtNormalRange(np.array(y_train), output_mode)

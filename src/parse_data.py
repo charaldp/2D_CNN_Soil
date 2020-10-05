@@ -29,6 +29,7 @@ def parse_args():
     # Optional
     parser.add_argument('-lv','--layerVisualization', help='Test for viewing the layer optputs',action='store_true')
     parser.add_argument('-vln','--visualizationLayersNumber', help='Number of model layers to visualize',default=12)
+    parser.add_argument('-se','--spectrogramExtractionView', help='Extract plots of spectra and spectrogram',action='store_true')
     parser.add_argument('-k','--kernelSize',type=int, help='Select kernel size',default=3)
     parser.add_argument('-b','--batchSize',type=int, help='Select batch size',default=24)
     parser.add_argument('-e','--epochs',type=int, help='Number of epochs',default=100)
