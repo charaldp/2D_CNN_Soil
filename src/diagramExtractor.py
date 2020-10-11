@@ -142,35 +142,6 @@ if args.mode == 'metrics':
             
     print(data_test)
     exit()
-    fig, ax = plt.subplots()
-
-    labels = ['G1', 'G2', 'G3', 'G4', 'G5']
-    men_means = [20, 34, 30, 35, 27]
-    women_means = [25, 32, 34, 20, 25]
-
-    x = np.arange(len(properties))  # the label locations
-    width = 0.35  # the width of the bars
-
-    fig, ax = plt.subplots()
-    rects = []
-    pos = 4
-    rects.append(ax.bar(x - width/2, men_means, width, label='Men'))
-    rects1 = ax.bar(x - width/2, men_means, width, label='Men')
-    rects2 = ax.bar(x + width/2, women_means, width, label='Women')
-
-    # Add some text for labels, title and custom x-axis tick labels, etc.
-    ax.set_ylabel('Scores')
-    ax.set_title('Scores by group and gender')
-    ax.set_xticks(x)
-    ax.set_xticklabels(labels)
-    ax.legend()
-
-    autolabel(rects1)
-    autolabel(rects2)
-
-    fig.tight_layout()
-
-    plt.show()
 
 if args.mode == 'boxplots':
     if 'Test' in args.useSet:
@@ -204,8 +175,8 @@ if args.mode == 'boxplots':
         fig, ax = plt.subplots()
         sets_char = ''
         for set_char in args.useSet:
-            sets_char = sets_char+set_char+'-'
-        ax.set_title(prop+' '+sets_char+'RMSE')
+            sets_char = sets_char+set_char
+        ax.set_title(prop+' '+sets_char+' Absolute Error')
         for j, folder in enumerate(args.folders):
             # fig, axs = plt.subplots(nrows=2, ncols=3, figsize=(6, 6), sharey=True)
             # axs[1, 2].bxp(stats, showfliers=False)

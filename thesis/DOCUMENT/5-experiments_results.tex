@@ -6,9 +6,60 @@
 Τα αποτελέσματα έχουν εξαχθεί αξιοποιώντας την Υπολογιστική Συστοιχία και τις παρεχόμενες υπηρεσίες υποστήριξης του Κέντρου Ηλεκτρονικής Διακυβέρνησης του Α.Π.Θ. \cite{hpcauth}, όπου η διαδικασία της εκπαίδευσης των μοντέλων επιταγχύνεται με μια κάρτα γραφικών $NVIDIA~Tesla~P100$. Επίσης έγινε χρήση του προσωπικού υπολογιστή για κάποια από τα τελευταία πειράματα με τη χρήση κάρτας γραφικών $NVIDIA~RTX-2060$
 
 \section{Επίδοση μοντέλων με χρήση μετασχηματισμών της εισόδου \tl{Abs-SG1 -- Reflectance spectrograms}}
-Η χρήση των σπεκτρογραμμάτων που προκύπτουν από την ανακλαστικότητα \tl{Reflectance} του εδάφους παρατηρείται και στην προτεινόμενη υλοποίηση, ωστόσο έπειτα από δοκιμές χρήσης διαφόρων μετασχηματισμών της εισόδου στο μοντέλο παρατηρήθηκε πως η χρήση της 1ης παραγώγου του μετασχηματισμού \tl{Savitzky-Golay} έχει καλύτερες επιδόσεις για την ιδιότητα του \tl{pH} στο νερό, ενώ ελαφρώς χειρότερη επίδοση από το μοντέλο που χρησιμοποιεί τα σπεκτρογράμματα από ανακλαστικότητα για τις υπόλοιπες ιδιότητες \tl{Organic Carbon, Nitrogen, Cation Exchange Capacity, Clay, Sand}.
+Η χρήση των σπεκτρογραμμάτων που προκύπτουν από την ανακλαστικότητα \tl{Reflectance} του εδάφους παρατηρήθηκε πως αποτελεί την καταλληλότερη είσοδο για την πρόβλεψη των περισσοτέρων ιδιοτήτων, η χρήση της συγκεκριμένης εισόδου  εφαρμόζεται και στην προτεινόμενη υλοποίηση. Ωστόσο έπειτα από δοκιμές χρήσης διαφόρων μετασχηματισμών της εισόδου στο μοντέλο και την εξαγωγή προβλέψεων του, παρατηρήθηκε πως η χρήση της 1ης παραγώγου του μετασχηματισμού \tl{Savitzky-Golay} έχει καλύτερες επιδόσεις σε ορισμένες ιδιότητες σε σχέση με τα σπεκτρογράμματα ανακλαστικότητας. Οι διαφορές φαίνονται αναλυτικά στα παρακάτω διαγράμματα.
 
-\textit{Πινακες ή διάγραμμα αποτελεσμάτων}
+\pgfplotsset{compat=newest}
+\selectlanguage{english}
+\begin{figure}[H]
+    \begin{tikzpicture}
+        \begin{axis}[
+            ybar,
+            width=19cm,
+            height=11cm,
+            bar width=21pt,
+            enlargelimits=0.07,
+            legend style={at={(0.88,0.9)},
+              anchor=north,legend columns=1},
+            ylabel={Coefficient of Determinanation $R^2$},
+            symbolic x coords={OC, CEC, Clay, Sand, pH, N, CaCO3, P, K},
+            xtick=data,
+            nodes near coords,
+            nodes near coords align={vertical},
+            ]
+                \addplot[fill=abs, draw=black] coordinates {(OC, 0.755) (CEC, 0.708) (Clay, 0.713) (Sand, 0.666) (pH, 0.906) (N, 0.709) (CaCO3, 0.931) (P, 0.281) (K, 0.415)};
+                \addplot[fill=refl, draw=black] coordinates {(OC, 0.768) (CEC, 0.726) (Clay, 0.766) (Sand, 0.768) (pH, 0.883) (N, 0.728) (CaCO3, 0.938) (P, 0.262) (K, 0.363)};
+        \legend{Absorbances-SG1,Reflectances}
+        \end{axis}
+    \end{tikzpicture}
+    \caption{\tg{Σύγκριση επιδόσεων των μοντέλων \tl{SI--SO} για τις διαφορετικές εισόδους \tl{Absorbances-SG1} και \tl{Reflectances}}}
+\end{figure}
+
+\begin{figure}[H]
+    \begin{tikzpicture}
+        \begin{axis}[
+            ybar,
+            width=19cm,
+            height=11cm,
+            bar width=21pt,
+            enlargelimits=0.07,
+            legend style={at={(0.88,0.9)},
+              anchor=north,legend columns=1},
+            ylabel={Coefficient of Determinanation $R^2$},
+            symbolic x coords={OC, CEC, Clay, Sand, pH, N, CaCO3, P, K},
+            xtick=data,
+            nodes near coords,
+            nodes near coords align={vertical},
+            ]
+                \addplot[fill=abs, draw=black] coordinates {(OC, 0.751) (CEC, 0.708) (Clay, 0.714) (Sand, 0.663) (pH, 0.901) (N,0.716) (CaCO3, 0.931) (P, 0.284) (K, 0.431)};
+                \addplot[fill=refl, draw=black] coordinates {(OC, 0.775) (CEC, 0.722) (Clay, 0.766) (Sand, 0.672) (pH, 0.877) (N,0.730) (CaCO3, 0.937) (P, 0.270) (K, 0.376)};
+        \legend{Absorbances-SG1,Reflectances}
+        \end{axis}
+    \end{tikzpicture}
+    \caption{\tg{Σύγκριση επιδόσεων των μοντέλων \tl{SI--MO} για τις διαφορετικές εισόδους \tl{Absorbances-SG1} και \tl{Reflectances}}}
+\end{figure}
+\selectlanguage{greek}
+
+Όπως προκύπτει και από τους 2 τύπους μοντέλων μιας εισόδου με βάση τα παραπάνω διαγράμματα, οι προβλέψεις των μοντέλων με είσοδο τα σπεκτρογράμματα του μετασχηματισμού \tl{Savitzky-Golay} πρώτης παραγώγου της απορροφητικότητας έχουν καλύτερες επιδόσεις για τις ιδιότητες του \tl{pH} στο νερό, της περιεκτικότητας καλίου και φωσφόρου, ενώ ελαφρώς χειρότερη επίδοση από το μοντέλο που χρησιμοποιεί τα σπεκτρογράμματα από ανακλαστικότητα για τις υπόλοιπες ιδιότητες \tl{Organic Carbon, Nitrogen, Cation Exchange Capacity, Clay, Sand}.
 
 \section{Επίδοση μοντέλου με χρήση πολλαπλών εισόδων}
 Έπειτα από την δοκιμή της επίδοσης των 2 εισόδων έγινε μια απόπειρα για την χρήση των 2 εισόδων σε ένα μοντέλο με σκοπό την εξαγωγή καλύτερων επιδόσεων. Το αποτέλεσμα πράγματα δείχνει μια βελτίωση της επίδοσης του μοντέλου πολλαπλών εισόδων, με την τήρηση του βέλτιστου αποτελέσματος για την κάθε είσοδο, ενώ ταυτόχρονα παρατηρήθηκε μια συνολική βελτίωση της επίδοσης του νευρωνικού δικτύου.
@@ -20,123 +71,125 @@
     \begin{subfigure}{0.5\textwidth}
         \includegraphics[width=1\linewidth]{RESULTS/BOXPLOTS/OC.pdf}
         \caption{Σύγκριση μοντέλων για την ιδιότητα του οργανικού άνθρακα}
-        \label{fig:subim1}
+        \label{fig:OC_boxplot}
     \end{subfigure}
     \begin{subfigure}{0.5\textwidth}
         \includegraphics[width=1\linewidth]{RESULTS/BOXPLOTS/CEC.pdf}
         \caption{Σύγκριση μοντέλων για την ιδιότητα της ικανότητας ανταλλαγής κατιόντων}
-        \label{fig:subim2}
+        \label{fig:CEC_boxplot}
     \end{subfigure}
+    \caption{}
 \end{figure}
 \begin{figure}[H]
     \begin{subfigure}{0.5\textwidth}
         \includegraphics[width=1\linewidth]{RESULTS/BOXPLOTS/Clay.pdf}
         \caption{Σύγκριση μοντέλων για την ιδιότητα την περιεκτικότητα σε άργιλο}
-        \label{fig:subim3}
+        \label{fig:Clay_boxplot}
     \end{subfigure}
     \begin{subfigure}{0.5\textwidth}
         \includegraphics[width=1\linewidth]{RESULTS/BOXPLOTS/Sand.pdf}
         \caption{Σύγκριση μοντέλων για την ιδιότητα την περιεκτικότητα σε άμμο}
-        \label{fig:subim4}
+        \label{fig:Sand_boxplot}
     \end{subfigure}
+    \caption{}
 \end{figure}
 \begin{figure}[H]
     \begin{subfigure}{0.5\textwidth}
         \includegraphics[width=1\linewidth]{RESULTS/BOXPLOTS/pH.pdf}
         \caption{Σύγκριση μοντέλων για την ιδιότητα την περιεκτικότητα του \tl{pH} στο νερό}
-        \label{fig:subim5}
+        \label{fig:pH_boxplot}
     \end{subfigure}
     \begin{subfigure}{0.5\textwidth}
         \includegraphics[width=1\linewidth]{RESULTS/BOXPLOTS/N.pdf}
         \caption{Σύγκριση μοντέλων για την ιδιότητα της περιεκτικότητας του αζώτου στο έδαφος}
-        \label{fig:subim6}
+        \label{fig:N_boxplot}
     \end{subfigure}
+    \caption{}
 \end{figure}
 \begin{figure}[H]
     \begin{subfigure}{0.5\textwidth}
         \includegraphics[width=1\linewidth]{RESULTS/BOXPLOTS/CaCO3.pdf}
         \caption{Σύγκριση μοντέλων για την ιδιότητα την περιεκτικότητα ανθρακικού ασβεστίου στο έδαφος}
-        \label{fig:subim7}
+        \label{fig:CaCO3_boxplot}
     \end{subfigure}
     \begin{subfigure}{0.5\textwidth}
         \includegraphics[width=1\linewidth]{RESULTS/BOXPLOTS/P.pdf}
         \caption{Σύγκριση μοντέλων για την ιδιότητα της περιεκτικότητας του φωσφόρου στο έδαφος}
-        \label{fig:subim8}
+        \label{fig:P_boxplot}
     \end{subfigure}
+    \caption{}
 \end{figure}
 \begin{figure}[H]
-    \begin{subfigure}{0.5\textwidth}
-        \includegraphics[width=1\linewidth]{RESULTS/BOXPLOTS/K.pdf}
+    \begin{center}
+        \includegraphics[width=0.5\linewidth]{RESULTS/BOXPLOTS/K.pdf}
         \caption{Σύγκριση μοντέλων για την ιδιότητα την περιεκτικότητα του καλίου στο έδαφος}
-        \label{fig:subim9}
-    \end{subfigure}
-    \begin{subfigure}{0.5\textwidth}
-        
-    \end{subfigure}
+        \label{fig:K_boxplot}
+    \end{center}
 \end{figure}
 
 \begin{figure}[H]
     \begin{subfigure}{0.5\textwidth}
         \includegraphics[width=1\linewidth]{RESULTS/BARPLOTS/test_OC_determ.pdf}
         \caption{Σύγκριση μοντέλων για την ιδιότητα του οργανικού άνθρακα}
-        \label{fig:subim1}
+        \label{fig:OC_determ}
     \end{subfigure}
     \begin{subfigure}{0.5\textwidth}
         \includegraphics[width=1\linewidth]{RESULTS/BARPLOTS/test_CEC_determ.pdf}
         \caption{Σύγκριση μοντέλων για την ιδιότητα της ικανότητας ανταλλαγής κατιόντων}
-        \label{fig:subim2}
+        \label{fig:CEC_determ}
     \end{subfigure}
+    \caption{}
 \end{figure}
 \begin{figure}[H]
     \begin{subfigure}{0.5\textwidth}
         \includegraphics[width=1\linewidth]{RESULTS/BARPLOTS/test_Clay_determ.pdf}
         \caption{Σύγκριση μοντέλων για την ιδιότητα την περιεκτικότητα σε άργιλο}
-        \label{fig:subim3}
+        \label{fig:Clay_determ}
     \end{subfigure}
     \begin{subfigure}{0.5\textwidth}
         \includegraphics[width=1\linewidth]{RESULTS/BARPLOTS/test_Sand_determ.pdf}
         \caption{Σύγκριση μοντέλων για την ιδιότητα την περιεκτικότητα σε άμμο}
-        \label{fig:subim4}
+        \label{fig:Sand_determ}
     \end{subfigure}
+    \caption{}
 \end{figure}
 \begin{figure}[H]
     \begin{subfigure}{0.5\textwidth}
         \includegraphics[width=1\linewidth]{RESULTS/BARPLOTS/test_pH_determ.pdf}
         \caption{Σύγκριση μοντέλων για την ιδιότητα την περιεκτικότητα του \tl{pH} στο νερό}
-        \label{fig:subim5}
+        \label{fig:pH_determ}
     \end{subfigure}
     \begin{subfigure}{0.5\textwidth}
         \includegraphics[width=1\linewidth]{RESULTS/BARPLOTS/test_N_determ.pdf}
         \caption{Σύγκριση μοντέλων για την ιδιότητα της περιεκτικότητας του αζώτου στο έδαφος}
-        \label{fig:subim6}
+        \label{fig:N_determ}
     \end{subfigure}
+    \caption{}
 \end{figure}
 \begin{figure}[H]
     \begin{subfigure}{0.5\textwidth}
         \includegraphics[width=1\linewidth]{RESULTS/BARPLOTS/test_CaCO3_determ.pdf}
         \caption{Σύγκριση μοντέλων για την ιδιότητα την περιεκτικότητα ανθρακικού ασβεστίου στο έδαφος}
-        \label{fig:subim7}
+        \label{fig:CaCO3_determ}
     \end{subfigure}
     \begin{subfigure}{0.5\textwidth}
         \includegraphics[width=1\linewidth]{RESULTS/BARPLOTS/test_P_determ.pdf}
         \caption{Σύγκριση μοντέλων για την ιδιότητα της περιεκτικότητας του φωσφόρου στο έδαφος}
-        \label{fig:subim8}
+        \label{fig:P_determ}
     \end{subfigure}
+    \caption{}
 \end{figure}
 \begin{figure}[H]
-    \begin{subfigure}{0.5\textwidth}
-        \includegraphics[width=1\linewidth]{RESULTS/BARPLOTS/test_K_determ.pdf}
+    \begin{center}
+        \includegraphics[width=0.5\linewidth]{RESULTS/BARPLOTS/test_K_determ.pdf}
         \caption{Σύγκριση μοντέλων για την ιδιότητα την περιεκτικότητα του καλίου στο έδαφος}
-        \label{fig:subim9}
-    \end{subfigure}
-    \begin{subfigure}{0.5\textwidth}
-        
-    \end{subfigure}
+        \label{fig:K_determ}
+    \end{center}
 \end{figure}
 
 \section{Επιρροή του λόγου οριζόντιας προς κατακόρυφης διάστασης --- ανώτατο όριο αύξησης}
 Η παράμετρος που ορίζει τον λόγο τον διαστάσεων της εικόνας εισόδου κατά την μετατροπή της φασματικής υπογραφή σε σπεκτρόγραμμα, παρατηρήθηκε πως επηρεάζει καθοριστικά την επίδοση των υλοποιήσεων δισδιάστατων συνελικτικών νευρωνικών δικτύων.\\
-Για την εύρεση της βέλτιστης τιμής της παραμέτρου V/H Ratio χρησιμοποιήθηκε ένα μοντέλο πολλαπλών εισόδων και πολλαπλών εξόδων για την πρόβλεψη των περισσοτέρων ιδιοτήτων
+Για την εύρεση της βέλτιστης τιμής της παραμέτρου \tl{V/H Ratio} χρησιμοποιήθηκε ένα μοντέλο πολλαπλών εισόδων και πολλαπλών εξόδων για την πρόβλεψη των περισσοτέρων ιδιοτήτων
 
 \begin{figure}[H]
   \begin{center}
@@ -194,85 +247,87 @@
 %  \end{center}
 %\end{figure}
 
-\begin{figure}[htbp]
+\begin{figure}[H]
     \begin{subfigure}{0.7\textwidth}
         \begin{subfigure}{\textwidth}
             \includesvg[width=1\linewidth]{RESULTS/model_layer_1_OC_conv2d_4}
             \caption{Πραγματικές τιμές}
-            \label{fig:subim1}
+            \label{fig:layer_1}
         \end{subfigure}
         \begin{subfigure}{\textwidth}
             \includesvg[width=1\linewidth]{RESULTS/model_layer_1_OC_conv2d_4_standarized}
             \caption{Κανονικοποιημένες τιμές}
-            \label{fig:subim1}
+            \label{fig:layer_1_stand}
         \end{subfigure}
     \end{subfigure}
     \begin{subfigure}{0.3\textwidth}
         \includesvg[width=\textwidth]{RESULTS/model_layer_1_OC_conv2d_4_kernels}
         \caption{Μορφή των συνελικιτκών φίλτρων που χρησιμοποιήθηκαν από το πρώτο δισδιάστατο συνελικτικό επιπέδο. Φαίνονται τα  18 πρώτα φίλτρα}
+        \label{fig:layer_1_filters}
     \end{subfigure}
     \caption{Μορφή της εξόδου του πρώτου δισδιάστατου συνελικτικού επιπέδου. Έξοδος για τα πρώτα 18 \tl{Feature Maps}}
 \end{figure}
 
-\begin{figure}[htbp]
+\begin{figure}[H]
     \begin{subfigure}{0.5\textwidth}
         \includesvg[width=1\linewidth]{RESULTS/model_layer_2_OC_batch_normalization_8}
         \caption{Πραγματικές τιμές}
-        \label{fig:subim1}
+        \label{fig:layer_2}
     \end{subfigure}
     \begin{subfigure}{0.5\textwidth}
         \includesvg[width=1\linewidth]{RESULTS/model_layer_2_OC_batch_normalization_8_standarized}
         \caption{Κανονικοποιημένες τιμές}
-        \label{fig:subim2}
+        \label{fig:layer_2_stand}
     \end{subfigure}
     \caption{Μορφή της εξόδου μετά το επίπεδο της κανονικοποίησης παρτίδας. Έξοδος για τα πρώτα 18 \tl{Feature Maps}}
 \end{figure}
 
-\begin{figure}[htbp]
+\begin{figure}[H]
     \begin{subfigure}{0.5\textwidth}
         \includesvg[width=1\linewidth]{RESULTS/model_layer_3_OC_re_lu_8}
         \caption{Πραγματικές τιμές}
-        \label{fig:subim3}
+        \label{fig:layer_3}
     \end{subfigure}
     \begin{subfigure}{0.5\textwidth}
         \includesvg[width=1\linewidth]{RESULTS/model_layer_3_OC_re_lu_8_standarized}
         \caption{Κανονικοποιημένες τιμές}
-        \label{fig:subim4}
+        \label{fig:layer_3_stand}
     \end{subfigure}
     \caption{Μορφή της εξόδου του πρώτου δισδιάστατου συνελικτικού επιπέδου μετά την συνάρτηση ενεργοποίησης \tl{ReLU}. Έξοδος για τα πρώτα 18 \tl{Feature Maps}}
 \end{figure}
 
-\begin{figure}[htbp]
+\begin{figure}[H]
     \begin{subfigure}{0.5\textwidth}
         \includesvg[width=1\linewidth]{RESULTS/model_layer_4_OC_max_pooling2d_2}
         \caption{Πραγματικές τιμές}
-        \label{fig:subim5}
+        \label{fig:layer_4}
     \end{subfigure}
     \begin{subfigure}{0.5\textwidth}
         \includesvg[width=1\linewidth]{RESULTS/model_layer_4_OC_max_pooling2d_2_standarized}
         \caption{Κανονικοποιημένες τιμές}
-        \label{fig:subim6}
+        \label{fig:layer_4_stand}
     \end{subfigure}
     \caption{Μορφή της εξόδου μετά την συνάρτηση ενεργοποίησης \tl{ReLU} του πρώτου επιπέδου και της εφαρμογής συγκέντρωσης μεγίστων. Έξοδος για τα πρώτα 18 \tl{Feature Maps}}
 \end{figure}
 
 
-\begin{figure}[htbp]
+\begin{figure}[H]
     \begin{subfigure}{0.7\textwidth}
         \begin{subfigure}{\textwidth}
             \includesvg[width=1\linewidth]{RESULTS/model_layer_5_OC_conv2d_5}
             \caption{Πραγματικές τιμές}
-            \label{fig:subim1}
+            \label{fig:layer_5}
         \end{subfigure}
         \begin{subfigure}{\textwidth}
             \includesvg[width=1\linewidth]{RESULTS/model_layer_5_OC_conv2d_5_standarized}
             \caption{Κανονικοποιημένες τιμές}
-            \label{fig:subim1}
+            \label{fig:layer_5_stand}
         \end{subfigure}
     \end{subfigure}
     \begin{subfigure}{0.3\textwidth}
         \includesvg[width=\textwidth]{RESULTS/model_layer_5_OC_conv2d_5_kernels}
         \caption{Μορφή των συνελικιτκών φίλτρων που χρησιμοποιήθηκαν από το δεύτερο δισδιάστατο συνελικτικό επιπέδο. Φαίνονται τα  18 πρώτα φίλτρα}
+        \label{fig:layer_5_filters}
     \end{subfigure}
     \caption{Μορφή της εξόδου του δευτερου δισδιάστατου συνελικτικού επιπέδου. Έξοδος για τα πρώτα 18 \tl{Feature Maps}}
 \end{figure}
@@ -298,33 +353,42 @@
   %\end{center}
 %\end{figure}
 
-\begin{figure}[htbp]
+\begin{figure}[H]
     \begin{subfigure}{0.5\textwidth}
         \includesvg[width=1\linewidth]{RESULTS/model_layer_6_OC_batch_normalization_9}
         \caption{Πραγματικές τιμές}
-        \label{fig:subim9}
+        \label{fig:layer_6}
     \end{subfigure}
     \begin{subfigure}{0.5\textwidth}
         \includesvg[width=1\linewidth]{RESULTS/model_layer_6_OC_batch_normalization_9_standarized}
         \caption{Κανονικοποιημένες τιμές}
-        \label{fig:subim10}
+        \label{fig:layer_6_stand}
     \end{subfigure}
     \caption{Μορφή της εξόδου μετά το επίπεδο της κανονικοποίησης παρτίδας του δεύτερου συνελικτικού επιπέδου. Έξοδος για τα πρώτα 18 \tl{Feature Maps}}
 \end{figure}
 
-\begin{figure}[htbp]
+\begin{figure}[H]
     \begin{subfigure}{0.5\textwidth}
         \includesvg[width=1\linewidth]{RESULTS/model_layer_7_OC_re_lu_9}
         \caption{Πραγματικές τιμές}
-        \label{fig:subim11}
+        \label{fig:layer_7}
     \end{subfigure}
     \begin{subfigure}{0.5\textwidth}
         \includesvg[width=1\linewidth]{RESULTS/model_layer_7_OC_re_lu_9_standarized}
         \caption{Κανονικοποιημένες τιμές}
-        \label{fig:subim12}
+        \label{fig:layer_7_stand}
     \end{subfigure}
     \caption{Μορφή της εξόδου του δεύτερου δισδιάστατου συνελικτικού επιπέδου μετά την συνάρτηση ενεργοποίησης \tl{ReLU}. Έξοδος για τα πρώτα 18 \tl{Feature Maps}}
 \end{figure}
 
-\textit{Σχολιασμοί για συνελικτικά επίπεδα, κανονικοποίηση παρτίδας, συνάρτηση ενεργοποίησης και επίπεδο συγκέντρωσης.}
-Στις παραπάνω εικόνες φαίνεται ο τρόπος με τον οποίο ένα μοντέλο το οποίο έχει προηγουμένως εκπαιδευτεί, επεξεργάζεται την μονοκαναλική εικόνα εισόδου σε όλα τα επίπεδα τα οποία έχει δισδιάστατη μορφή. 
+Στις παραπάνω εικόνες φαίνεται ο τρόπος με τον οποίο ένα μοντέλο το οποίο έχει προηγουμένως εκπαιδευτεί, επεξεργάζεται την μονοκαναλική εικόνα εισόδου σε όλα τα επίπεδα τα οποία έχει δισδιάστατη μορφή.\\
+
+Στα δισδιάστατα συνελικτικά επίπεδα παρατηρείται πως η εικόνα εισόδου τροποποιείται σε διαφορετικές εκδοχές της ανάλογα με το συνελικτικό φίλτρο που εφαρμόζεται.\\
+
+Στα επίπεδα κανονικιοποίησης παρτίδας είναι ορατή η κανονικοποίηση που υφίσταται το σύνολο των \tl{Feature Maps} σε σχέση με το εύρος τιμών που είχαν στα συνελικτικά επίπεδα.\\
+
+Στα επίπεδα ενεργοποίησης με χρήση ανορθωμένης γραμμικής συνάρτησης \tl{ReLU} φαίνεται πως η εφαρμογή της συνάρτησης ενεργοποίσης επιτρέπει μόνο στα μέρη των εικόνων με μεγαλύτερες τιμές, τα οποία πιθανώς περιέχουν χρήσιμη πληροφορία, να μεταφερθούν προς το επόμενο επίπεδο.\\
+
+Τα επίπεδα συγκέντρωσης μεγίστων τροποποιούν την είσοδο τους μειώνοντας τις διαστάσεις της ενώ διατηρούν τα μέγιστα των περιοχών τις οποίες συγκεντρώνουν. Το αποτέλεσμα οπτικά φαίνεται σαν μια σμίκρυνση της εικόνας εισόδου.\\
+
+Κατά την επεξεργασία της εισόδου από το δισδιάστατο συνελικτικό νευρωνικό δίκτυο η μορφή της εικόνας τροποποιείται σημαντικά με αποτέλεσμα μετά το συνελικτικό επίπεδο 5 η εικόνα να μην έχει καμία ομοιότητα με την αρχική της μορφή.
