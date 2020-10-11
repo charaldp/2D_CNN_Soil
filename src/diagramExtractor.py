@@ -68,13 +68,13 @@ def extractPropertyErrors(data_test, data_val, data_train, j, folder, prop, args
     val_actual = []
     train_pred = []
     train_actual = []
-    print(folder, prop)
-    if (prop == 'Silt') and j < max(len(data_test), len(data_val), len(data_train)) - 1 and (not 'Silt_test_preds' in data_test[j]) and (not 'Silt_val_preds' in data_val[j])and (not 'Silt_train_preds' in data_train[j]):
+    # print(folder, prop)
+    if (prop == 'Silt') and (j >= len(data_test) or not 'Silt_test_preds' in data_test[j]) and (j >= len(data_val) or not 'Silt_val_preds' in data_val[j]) and (j >= len(data_train) or not 'Silt_train_preds' in data_train[j]):
         if 'Test' in args.useSet:
-            print(data_test[j]['Clay_test_preds'])
+            # print(data_test[j]['Clay_test_preds'])
             test_pred = 100 - data_test[j]['Clay_test_preds'] - data_test[j]['Sand_test_preds']
             test_actual = 100 - data_test[j]['Clay_test_actuals'] - data_test[j]['Sand_test_actuals']
-            print(test_pred)
+            # print(test_pred)
         if 'Val' in args.useSet:
             val_pred = 100 - data_val[j]['Clay_val_preds'] - data_val[j]['Sand_val_preds']
             val_actual = 100 - data_val[j]['Clay_val_actuals'] - data_val[j]['Sand_val_actuals']
@@ -107,12 +107,9 @@ print(args)
 print(args.modelNames)
 # exit()
 if args.mode == 'metrics':
-    if 'Test' in args.useSet:
-        data_test_instances = []
-    if 'Val' in args.useSet:
-        data_val_instances = []
-    if 'Train' in args.useSet:
-        data_train_instances = []
+    data_test_instances = []
+    data_val_instances = []
+    data_train_instances = []
     if 'Test' in args.useSet:
         data_test = {}
         for metric in args.metrics:
@@ -148,6 +145,17 @@ if args.mode == 'metrics':
         print('properties', properties)
         print('data')
         print(data)
+        data_extracted = {}
+        for prop in args.properties:
+            data_extracted[prop] = {}
+            test_pred, test_actual, val_pred, val_actual, train_pred, train_actual = extractPropertyErrors(data_test_instances, data_val_instances, data_train_instances, j, folder, prop, args)
+            if 'Test' in args.useSet:
+                data_extracted[prop]['test_rmse'], data_extracted[prop]['test_determ'], data_extracted[prop]['test_rpiq'] = modelCNN2dSpectr.computeErrors(test_actual, test_pred)
+            if 'Val' in args.useSet:
+                data_extracted[prop]['val_rmse'], data_extracted[prop]['val_determ'], data_extracted[prop]['val_rpiq'] = modelCNN2dSpectr.computeErrors(val_actual, val_pred)
+            if 'Train' in args.useSet:
+                data_extracted[prop]['train_rmse'], data_extracted[prop]['train_determ'], data_extracted[prop]['train_rpiq'] = modelCNN2dSpectr.computeErrors(train_actual, train_pred)
+        data = data_extracted
         for metric in args.metrics:
             if 'Test' in args.useSet:
                 for prop in args.properties:
@@ -165,8 +173,9 @@ if args.mode == 'metrics':
             data_val[metric] = pnd.DataFrame(data_val[metric])
         if 'Train' in args.useSet:
             data_train[metric] = pnd.DataFrame(data_train[metric])
+    
 
-    tips = sns.load_dataset("tips")
+    # tips = sns.load_dataset("tips")
     for prop in args.properties:
         for metric in args.metrics:
             print(prop, metric)
@@ -213,7 +222,7 @@ if args.mode == 'boxplots':
                 prop = col[0: col.find('_')]
                 if not prop in props:
                     props.append(prop)
-    print(data_test, data_val, data_train)
+    # print(data_test, data_val, data_train)
     print(props)
     props = args.properties
     for prop in props:
@@ -228,7 +237,6 @@ if args.mode == 'boxplots':
         for j, folder in enumerate(args.folders):
             test_pred, test_actual, val_pred, val_actual, train_pred, train_actual = extractPropertyErrors(data_test, data_val, data_train, j, folder, prop, args)
             if 'Test' in args.useSet:
-                print(test_pred, test_actual)
                 errors_test = np.absolute(test_pred - test_actual)
             if 'Val' in args.useSet:
                 errors_val = np.absolute(val_pred - val_actual)
