@@ -362,7 +362,7 @@ Q 14.984375 11.71875 18.140625 8.90625
 Q 21.296875 6.109375 26.703125 6.109375 
 Q 34.1875 6.109375 38.703125 11.40625 
 Q 43.21875 16.703125 43.21875 25.484375 
-L 43.21875 27.484375 
+L 43.21875 27.484375
 z
 M 52.203125 31.203125 
 L 52.203125 0 
@@ -638,7 +638,7 @@ L 20.40625 45.703125
 L 10.59375 45.703125 
 L 37.109375 72.90625 
 z
-" id="DejaVuSans-94"/>
+" id="DejaVuSans-93"/>
       </defs>
       <use xlink:href="#DejaVuSans-86"/>
       <use x="60.658203" xlink:href="#DejaVuSans-97"/>
@@ -650,10 +650,11 @@ z
       <use x="341.46875" xlink:href="#DejaVuSans-105"/>
       <use x="369.251953" xlink:href="#DejaVuSans-111"/>
       <use x="430.433594" xlink:href="#DejaVuSans-110"/>
-      <use x="493.8125" xlink:href="#DejaVuSans-32"/>
       <use x="525.599609" xlink:href="#DejaVuSans-82"/>
-      <use x="595.082031" xlink:href="#DejaVuSans-94"/>
-      <use x="678.871094" xlink:href="#DejaVuSans-50"/>
+	  <g transform="scale(0.72 0.72)">
+		<use x="810.871094" y="60.871094" font-size="2em" xlink:href="#DejaVuSans-50"/>
+	  </g>
+	  <!--font-size="smaller"-->
      </g>
     </g>
    </g>

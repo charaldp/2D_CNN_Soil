@@ -773,7 +773,7 @@ class SoilModel(object):
 
 	def getDiagramLayerTitle(self, name, index):
 		if 'conv2d' in name:
-			title = '2D Concolutional Layer '
+			title = '2D Convolutional Layer '
 		elif 'batch' in name:
 			title = 'Batch Normalization Layer '
 		elif 're_lu' in name:
