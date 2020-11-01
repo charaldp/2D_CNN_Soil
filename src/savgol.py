@@ -164,7 +164,7 @@ elif args.mode=='extract_abs_sg1_implement':
 		# plt.plot(data_abs_array[test_index])
 		# plt.savefig(path_datetime+'/'+str(test_index)+'Abs_Reduced.png')
 		# plt.close()
-		data_array[i] = signal.savgol_filter(-np.log10(data_array[i]), 101, 3, 1).tolist()
+		data_array[i] = signal.savgol_filter(-np.log10(data_array[i]), 101, 3).tolist()
 		ax = plt.plot(data_array[i])
 		plt.xlabel('Wavelength index', fontsize=18)
 		plt.ylabel('Absorbance SG1', fontsize=18)

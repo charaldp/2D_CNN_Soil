@@ -10,9 +10,9 @@
 
 Για την σύγκριση των μοντέλων στο πειραματικό στάδιο χρησιμοποιήθηκαν τα μοντέλα μιας εισόδου με τη χρήση των σπεκτρογραμμάτων ανακλαστικότητας και πολλαπλών εξόδων για την πρόβλεψη των 6 βασικών ιδιοτήτων που εξετάζονται και στην δημοσίευση των \tl{Padarian et.al}, οι οποίες είναι σε συντομογραφίες οι \tl{OC, N, pH, Clay, Sand} και \tl{CEC}. Η επιλογή της παραπάνω μορφής μοντέλου επιλέχθηκε ώστε η διαδικασία εξαγωγής των αποτελεσμάτων να είναι συντομότερη ενώ τα αποτελέσματα να μπορούν να είναι βάσιμα.\\
 
-Η προτεινόμενη αρχιτεκτονική των Padarian et al. δίνεται στον Πίνακα~\ref{tab:padarian.network} με τα αποτελέσματα πρόβλεψης στο ανεξάρτητο σύνολο δεδομένων αξιολόγησης να δίνονται στον Πίνακα~\ref{tab:padarian.results}.
+Η προτεινόμενη αρχιτεκτονική των \tl{Padarian et al.} δίνεται στον Πίνακα~\ref{tab:padarian.network} με τα αποτελέσματα πρόβλεψης στο ανεξάρτητο σύνολο δεδομένων αξιολόγησης να δίνονται στα ραβδογράμματα του σχήματος ~\ref{fig:padarian.results}.
 
-\begin{table}[H]
+\begin{table}[!t]
     \centering
     \caption{Αρχιτεκτονική του προτεινόμενου μοντέλου}
     \label{tab:padarian.network}
@@ -34,31 +34,57 @@
         \bottomrule
     \end{tabular}\selectlanguage{greek}
 \end{table}
-\begin{table}[H]
-    \centering
-    \caption{Επίδοση του προτεινόμενου μοντέλου στο σετ δεδομένων αξιολόγησης (\tl{Test})}
-    \label{tab:padarian.results}
-    \ra{1.3}\selectlanguage{english}
-    \begin{tabular}{@{}rrrrrrr@{}}\toprule
-        Metric&OC&N&pH&Clay&Sand&CEC\\
-        \midrule
-        \textbf{Absorbances}&\multicolumn{6}{c}{}\\
-        RMSE&16.2137&1.0016&0.5227&8.0078&17.7052&6.4343\\
-        $R^2$&0.6906&0.6162&0.8437&0.6117&0.5432&0.6066\\
-        RPIQ&1.4123&1.3976&4.5718&2.2477&2.5416&1.8028\\
-        \addlinespace
-        \textbf{Reflectances}&\multicolumn{6}{c}{}\\
-        RMSE&15.7841&0.9658&0.5790&7.6366&17.6230&6.4378\\
-        $R^2$&0.7068&0.6432&0.8083&0.6468&0.5475&0.6062\\
-        RPIQ&1.4508&1.4495&4.1277&2.3570&2.5534&1.8018\\
-        \bottomrule
-    \end{tabular}\selectlanguage{greek}
-\end{table}
+\begin{figure}[!t]
+    \selectlanguage{english}
+    \begin{tikzpicture}
+        \begin{axis}[
+            ybar,
+            width=19cm,
+            height=11cm,
+            bar width=21pt,
+            enlargelimits=0.07,
+            legend style={at={(0.8,0.95)},
+              anchor=north,legend columns=1},
+            ylabel={Coefficient of Determinanation $R^2$},
+            symbolic x coords={OC, N, pH, Clay, Sand, CEC},
+            xtick=data,
+            nodes near coords,
+            nodes near coords align={vertical},
+            ]
+                \addplot[fill=abs, draw=black] coordinates {(OC, 0.690) (N, 0.616) (pH, 0.843) (Clay, 0.611) (Sand, 0.543) (CEC, 0.606)};
+                \addplot[fill=refl, draw=black] coordinates {(OC, 0.706) (N, 0.643) (pH, 0.808) (Clay, 0.646) (Sand, 0.547) (CEC, 0.606)};
+        \legend{Suggested-Absorbances,Suggested-Reflectances}
+        \end{axis}
+    \end{tikzpicture}
+    \selectlanguage{greek}
+    \caption{Επιδόσεις του προτεινόμενου (\tl{Suggested}) μοντέλου για τις διαφορετικές εισόδους \tl{Absorbances-SG1} και \tl{Reflectances}}
+    \label{fig:padarian.results}
+\end{figure}
+% \begin{table}[H]
+%     \centering
+%     \caption{Επίδοση του προτεινόμενου μοντέλου στο σετ δεδομένων αξιολόγησης (\tl{Test})}
+%     \label{tab:padarian.results}
+%     \ra{1.3}\selectlanguage{english}
+%     \begin{tabular}{@{}rrrrrrr@{}}\toprule
+%         Metric&OC&N&pH&Clay&Sand&CEC\\
+%         \midrule
+%         \textbf{Absorbances}&\multicolumn{6}{c}{}\\
+%         RMSE&16.2137&1.0016&0.5227&8.0078&17.7052&6.4343\\
+%         $R^2$&0.6906&0.6162&0.8437&0.6117&0.5432&0.6066\\
+%         RPIQ&1.4123&1.3976&4.5718&2.2477&2.5416&1.8028\\
+%         \addlinespace
+%         \textbf{Reflectances}&\multicolumn{6}{c}{}\\
+%         RMSE&15.7841&0.9658&0.5790&7.6366&17.6230&6.4378\\
+%         $R^2$&0.7068&0.6432&0.8083&0.6468&0.5475&0.6062\\
+%         RPIQ&1.4508&1.4495&4.1277&2.3570&2.5534&1.8018\\
+%         \bottomrule
+%     \end{tabular}\selectlanguage{greek}
+% \end{table}
 
 \subsection{Συνελικτικά επίπεδα}
 Η αρχιτεκτονική του μοντέλου των \tl{Padarian et.al} θεωρείται πως περιλαμβάνει μεγάλο αριθμό συνελικτικών επιπέδων χωρίς αυτά να είναι απαραίτητα. Για την εξακρίβωση της παραπάνω υπόθεσης έγινε μια δοκιμή ενός μοντέλου το οποίο περιλαμβάνει 2 λιγότερα συνελικτικά επίπεδα και ένα λιγότερο επίπεδο συγκέντρωσης, επίσης προστέθηκε ένα ακόμη πλήρως συνδεδεμένο επίπεδο. Επίσης στην είσοδο του μοντέλου έχει εφαρμοστεί υποδειγματοληψία 1:8. Η αρχιτεκτονική καθώς και η επίδοση του μοντέλου φαίνεται στους παρακάτω πίνακες.
 
-\begin{table}[H]
+\begin{table}[!t]
     \centering
     \caption{Αρχιτεκτονική μοντέλου με μειωμένο αριθμό συνελικτικών επιπέδων}
     \ra{1.3}\selectlanguage{english}
@@ -72,30 +98,58 @@
         Fully-connected&–&-&64&ReLU\\
         Fully-connected&–&-&32&ReLU\\
         Fully-connected&–&-&1&Linear\\
-        \hline
+        \addlinespace
         \textbf{Parameters}&&\multicolumn{3}{c}{2,646,000}\\
         \bottomrule
     \end{tabular}\selectlanguage{greek}
 \end{table}
-\begin{table}[H]
-    \centering
-    \caption{Επίδοση μοντέλου με μειωμένο αριθμό συνελικτικών επιπέδων στο σετ δεδομένων αξιολόγησης (\tl{Test})}
-    \ra{1.3}\selectlanguage{english}
-    \begin{tabular}{@{}rrrrrrr@{}}\toprule
-        Metric&OC&N&pH&Clay&Sand&CEC\\
-        \midrule
-        \textbf{Absorbances}&\multicolumn{6}{c}{}\\
-        RMSE&16.2720&1.0159&0.4953&7.8409&17.2600&6.5050\\
-        $R^2$&0.6884&0.6053&0.8598&0.6277&0.5660&0.5980\\
-        RPIQ&1.4073&1.3781&4.8258&2.2957&2.6072&1.7833\\
-        \midrule
-        \textbf{Reflectances}&\multicolumn{6}{c}{}\\
-        RMSE&15.7271&0.9880&0.5360&8.3438&17.5607&6.3457\\
-        $R^2$&0.7090&0.6266&0.8357&0.5784&0.5507&0.6174\\
-        RPIQ&1.4561&1.4170&4.4589&2.1573&2.5625&1.8280\\
-        \bottomrule
-    \end{tabular}\selectlanguage{greek}
-\end{table}
+\begin{figure}[!t]
+    \selectlanguage{english}
+    \begin{tikzpicture}
+        \begin{axis}[
+            ybar,
+            width=19cm,
+            height=11cm,
+            bar width=15pt,
+            enlargelimits=0.12,
+            legend style={at={(0.8,0.95)},
+              anchor=north,legend columns=1},
+            ylabel={Coefficient of Determinanation $R^2$},
+            symbolic x coords={OC, N, pH, Clay, Sand, CEC},
+            xtick=data,
+            nodes near coords,
+            nodes near coords align={vertical},
+            every node near coord/.append style={font=\footnotesize}
+            ]
+                \addplot[fill=abs, draw=black] coordinates {(OC, 0.690) (N, 0.616) (pH, 0.843) (Clay, 0.611) (Sand, 0.543) (CEC, 0.606)};
+                \addplot[fill=refl, draw=black] coordinates {(OC, 0.706) (N, 0.643) (pH, 0.808) (Clay, 0.646) (Sand, 0.547) (CEC, 0.606)};
+                \addplot[fill=abs1, draw=black] coordinates {(OC, 0.688) (N, 0.605) (pH, 0.859) (Clay, 0.627) (Sand, 0.566) (CEC, 0.598)};
+                \addplot[fill=refl1, draw=black] coordinates {(OC, 0.709) (N, 0.626) (pH, 0.835) (Clay, 0.578) (Sand, 0.550) (CEC, 0.617)};
+        \legend{Suggested-Abs-SG1,Suggested-Reflectances, Reduced-Abs-SG1, Reduced-Reflectances}
+        \end{axis}
+    \end{tikzpicture}
+    \selectlanguage{greek}
+    \caption{Επιδόσεις του μοντέλου με μειωμένα συνελικτικά επίπεδα (\tl{Reduced}) για τις διαφορετικές εισόδους \tl{Absorbances-SG1} και \tl{Reflectances} σε σύγκριση με το προτεινόμενο μοντέλο}
+\end{figure}
+% \begin{table}[H]
+%     \centering
+%     \caption{Επίδοση μοντέλου με μειωμένο αριθμό συνελικτικών επιπέδων στο σετ δεδομένων αξιολόγησης (\tl{Test})}
+%     \ra{1.3}\selectlanguage{english}
+%     \begin{tabular}{@{}rrrrrrr@{}}\toprule
+%         Metric&OC&N&pH&Clay&Sand&CEC\\
+%         \midrule
+%         \textbf{Absorbances}&\multicolumn{6}{c}{}\\
+%         RMSE&16.2720&1.0159&0.4953&7.8409&17.2600&6.5050\\
+%         $R^2$&0.6884&0.6053&0.8598&0.6277&0.5660&0.5980\\
+%         RPIQ&1.4073&1.3781&4.8258&2.2957&2.6072&1.7833\\
+%         \midrule
+%         \textbf{Reflectances}&\multicolumn{6}{c}{}\\
+%         RMSE&15.7271&0.9880&0.5360&8.3438&17.5607&6.3457\\
+%         $R^2$&0.7090&0.6266&0.8357&0.5784&0.5507&0.6174\\
+%         RPIQ&1.4561&1.4170&4.4589&2.1573&2.5625&1.8280\\
+%         \bottomrule
+%     \end{tabular}\selectlanguage{greek}
+% \end{table}
 
 Με βάση τα αποτελέσματα του μοντέλου με μειωμένο αριθμό συνελικτικών επιπέδων προκύπτει το συμπέρασμα πως η χρήση της υποδειγματοληψίας και η μείωση των επιπέδων οδηγούν σε μια αρχιτεκτονική μοντέλου η οποία δύναται να έχει επιδόσεις αντίστοιχες με αυτές του προτεινόμενου μοντέλου.\\
 
@@ -105,6 +159,7 @@
 \begin{table}[H]
     \centering
     \caption{Αρχιτεκτονική μοντέλου με αυξημένο αριθμό πλήρως συνδεδεμένων επιπέδων}
+    \label{tbl:arch-high-dense}
     \ra{1.3}\selectlanguage{english}
     \begin{tabular}{@{}rrrrr@{}}\toprule
         Type&Kernel Size&Filters&Size&Activation\\
@@ -116,74 +171,131 @@
         Fully-connected&–&-&64&ReLU\\
         Fully-connected&–&-&32&ReLU\\
         Fully-connected&–&-&1&Linear\\
-        \hline
+        \addlinespace
         \textbf{Parameters}&&\multicolumn{3}{c}{5,106,000}\\
         \bottomrule
     \end{tabular}\selectlanguage{greek}
 \end{table}
-\begin{table}[H]
-    \centering
-    \caption{Επίδοση μοντέλου με αυξημένο αριθμό πλήρως συνδεδεμένων επιπέδων στο σετ δεδομένων αξιολόγησης (\tl{Test})}
-    \ra{1.3}\selectlanguage{english}
-    \begin{tabular}{@{}rrrrrrr@{}}\toprule
-        Metric&OC&N&pH&Clay&Sand&CEC\\
-        \midrule
-        \textbf{Absorbances}&\multicolumn{6}{c}{}\\
-        RMSE&16.4872&1.0732&0.4932&7.8613&17.7789&6.5797\\
-        $R^2$&0.6801&0.5595&0.8609&0.6258&0.5395&0.5887\\
-        RPIQ&1.3890&1.3045&4.8455&2.2897&2.5311&1.7630\\
-        \midrule
-        \textbf{Reflectances}&\multicolumn{6}{c}{}\\
-        RMSE&15.7040&0.9778&0.5278&7.7806&17.4388&6.3588\\
-        $R^2$&0.7098&0.6343&0.8407&0.6334&0.5569&0.6158\\
-        RPIQ&1.4582&1.4318&4.5280&2.3135&2.5805&1.8243\\
-        \bottomrule
-    \end{tabular}\selectlanguage{greek}
-\end{table}
+\begin{figure}[H]
+    \selectlanguage{english}
+    \begin{tikzpicture}
+        \begin{axis}[
+            ybar,
+            width=19cm,
+            height=11cm,
+            bar width=15pt,
+            enlargelimits=0.12,
+            legend style={at={(0.8,0.95)},
+              anchor=north,legend columns=1},
+            ylabel={Coefficient of Determinanation $R^2$},
+            symbolic x coords={OC, N, pH, Clay, Sand, CEC},
+            xtick=data,
+            nodes near coords,
+            nodes near coords align={vertical},
+            every node near coord/.append style={font=\footnotesize}
+            ]
+                \addplot[fill=abs, draw=black] coordinates {(OC, 0.690) (N, 0.616) (pH, 0.843) (Clay, 0.611) (Sand, 0.543) (CEC, 0.606)};
+                \addplot[fill=refl, draw=black] coordinates {(OC, 0.706) (N, 0.643) (pH, 0.808) (Clay, 0.646) (Sand, 0.547) (CEC, 0.606)};
+                \addplot[fill=abs1, draw=black] coordinates {(OC, 0.680) (N, 0.559) (pH, 0.860) (Clay, 0.625) (Sand, 0.539) (CEC, 0.588)};
+                \addplot[fill=refl1, draw=black] coordinates {(OC, 0.709) (N, 0.634) (pH, 0.840) (Clay, 0.633) (Sand, 0.556) (CEC, 0.615)};
+        \legend{Suggested-Abs-SG1,Suggested-Reflectances, Reduced-Abs-SG1, Reduced-Reflectances}
+        \end{axis}
+    \end{tikzpicture}
+    \selectlanguage{greek}
+    \caption{Επιδόσεις του μοντέλου με μειωμένα συνελικτικά επίπεδα και αυξημένο αριθμό πλήρως συνδεδεμένων επιπέδων(\tl{Reduced}) για τις διαφορετικές εισόδους \tl{Absorbances-SG1} και \tl{Reflectances} σε σύγκριση με το προτεινόμενο μοντέλο για την μετρική $R^2$}
+    \label{fig:perf-high-dense}
+\end{figure}
+% \begin{table}[H]
+%     \centering
+%     \caption{Επίδοση μοντέλου με αυξημένο αριθμό πλήρως συνδεδεμένων επιπέδων στο σετ δεδομένων αξιολόγησης (\tl{Test})}
+%     \ra{1.3}\selectlanguage{english}
+%     \begin{tabular}{@{}rrrrrrr@{}}\toprule
+%         Metric&OC&N&pH&Clay&Sand&CEC\\
+%         \midrule
+%         \textbf{Absorbances}&\multicolumn{6}{c}{}\\
+%         RMSE&16.4872&1.0732&0.4932&7.8613&17.7789&6.5797\\
+%         $R^2$&0.6801&0.5595&0.8609&0.6258&0.5395&0.5887\\
+%         RPIQ&1.3890&1.3045&4.8455&2.2897&2.5311&1.7630\\
+%         \midrule
+%         \textbf{Reflectances}&\multicolumn{6}{c}{}\\
+%         RMSE&15.7040&0.9778&0.5278&7.7806&17.4388&6.3588\\
+%         $R^2$&0.7098&0.6343&0.8407&0.6334&0.5569&0.6158\\
+%         RPIQ&1.4582&1.4318&4.5280&2.3135&2.5805&1.8243\\
+%         \bottomrule
+%     \end{tabular}\selectlanguage{greek}
+% \end{table}
 
-Από τους παραπάνω πίνακες φαίνεται πως η χρήση πλήρως συνδεδεμένων επιπέδων σε συνδυασμό με την μείωση των συνελικτικών επιπέδων στην αρχιτεκτονική του μοντέλου, εξάγει ισοδύναμα αποτελέσματα με το προτεινόμενο μοντέλο.
+Από τον πίνακα \ref{tbl:arch-high-dense} και το ραβδόγραμμα του σχήματος \ref{fig:perf-high-dense} φαίνεται πως η χρήση πλήρως συνδεδεμένων επιπέδων σε συνδυασμό με την μείωση των συνελικτικών επιπέδων στην αρχιτεκτονική του μοντέλου, εξάγει ισοδύναμα αποτελέσματα με το προτεινόμενο μοντέλο.
 
 \subsection{Επιρροή χρήσης \tl{Max Pooling}}
 Όπως αναφέρθηκε στην θεωρητική ανάλυση των δισδιάστατων νευρωνικών δικτύων, τα επίπεδα συγκέντρωσης είναι από τα βασικά της συγκεκριμένης κατηγορίας μοντέλων. Ωστόσο εξετάστηκε η επίδραση της μείωσης του αριθμού των επιπέδων συγκέντρωσης, καθώς σε ορισμένες αρχιτεκτονικές του δοκιμάστηκαν ο αριθμός των συνελικτικών επιπέδων φτάνει μέχρι και το ελάχιστο των 2 επιπέδων.
 
-\begin{table*}
-    \centering
-    \caption{Επίδοση μοντέλου χωρίς τη χρήση επιπέδου συγκέντρωσης}
-    \ra{1.3}\selectlanguage{english}
-    \begin{tabular}{@{}rrrrrrr@{}}\toprule
-        Metric&OC&N&pH&Clay&Sand&CEC\\
-        \midrule
-        \textbf{Absorbances}&\multicolumn{6}{c}{}\\
-        RMSE&15.9594&0.9958&0.4633&7.7620&17.3450&6.2407\\
-        $R^2$&0.7003&0.6207&0.8773&0.6352&0.5617&0.6300\\
-        RPIQ&1.4349&1.4059&5.1592&2.3190&2.5944&1.8588\\
-        \midrule
-        \textbf{Reflectances}&\multicolumn{6}{c}{}\\
-        RMSE&15.2674&0.9504&0.4820&7.1946&17.0409&6.1428\\
-        $R^2$&0.7257&0.6545&0.8672&0.6866&0.5769&0.6415\\
-        RPIQ&1.4999&1.4731&4.9590&2.5019&2.6407&1.8884\\
-        \bottomrule
-    \end{tabular}\selectlanguage{greek}
-\end{table*}
-\begin{table*}
-    \centering
-    \caption{Επίδοση μοντέλου με τη χρήση επιπέδου συγκέντρωσης στο σετ δεδομένων αξιολόγησης (\tl{Test})}
-    \ra{1.3}\selectlanguage{english}
-    \begin{tabular}{@{}rrrrrrr@{}}\toprule
-        Metric&OC&N&pH&Clay&Sand&CEC\\
-        \midrule
-        \textbf{Absorbances}&\multicolumn{6}{c}{}\\
-        RMSE&14.8639&0.9085&0.4440&7.1983&15.738&5.7918\\
-        $R^2$&0.7400&0.6843&0.8873&0.6862&0.639&0.6813\\
-        RPIQ&1.5406&1.5410&5.3830&2.5006&2.8593&2.0028\\
-        \midrule
-        \textbf{Reflectances}&\multicolumn{6}{c}{}\\
-        RMSE&14.2402&0.8777&0.4896&6.5591&15.8137&5.6772\\
-        $R^2$&0.7614&0.7054&0.8630&0.7395&0.6357&0.6938\\
-        RPIQ&1.6081&1.5951&4.8820&2.7443&2.8456&2.0433\\
-        \bottomrule
-    \end{tabular}\selectlanguage{greek}
-\end{table*}
+% \begin{table*}
+%     \centering
+%     \caption{Επίδοση μοντέλου χωρίς τη χρήση επιπέδου συγκέντρωσης}
+%     \ra{1.3}\selectlanguage{english}
+%     \begin{tabular}{@{}rrrrrrr@{}}\toprule
+%         Metric&OC&N&pH&Clay&Sand&CEC\\
+%         \midrule
+%         \textbf{Absorbances}&\multicolumn{6}{c}{}\\
+%         RMSE&15.9594&0.9958&0.4633&7.7620&17.3450&6.2407\\
+%         $R^2$&0.7003&0.6207&0.8773&0.6352&0.5617&0.6300\\
+%         RPIQ&1.4349&1.4059&5.1592&2.3190&2.5944&1.8588\\
+%         \midrule
+%         \textbf{Reflectances}&\multicolumn{6}{c}{}\\
+%         RMSE&15.2674&0.9504&0.4820&7.1946&17.0409&6.1428\\
+%         $R^2$&0.7257&0.6545&0.8672&0.6866&0.5769&0.6415\\
+%         RPIQ&1.4999&1.4731&4.9590&2.5019&2.6407&1.8884\\
+%         \bottomrule
+%     \end{tabular}\selectlanguage{greek}
+% \end{table*}
+% \begin{table*}
+%     \centering
+%     \caption{Επίδοση μοντέλου με τη χρήση επιπέδου συγκέντρωσης στο σετ δεδομένων αξιολόγησης (\tl{Test})}
+%     \ra{1.3}\selectlanguage{english}
+%     \begin{tabular}{@{}rrrrrrr@{}}\toprule
+%         Metric&OC&N&pH&Clay&Sand&CEC\\
+%         \midrule
+%         \textbf{Absorbances}&\multicolumn{6}{c}{}\\
+%         RMSE&14.8639&0.9085&0.4440&7.1983&15.738&5.7918\\
+%         $R^2$&0.7400&0.6843&0.8873&0.6862&0.639&0.6813\\
+%         RPIQ&1.5406&1.5410&5.3830&2.5006&2.8593&2.0028\\
+%         \midrule
+%         \textbf{Reflectances}&\multicolumn{6}{c}{}\\
+%         RMSE&14.2402&0.8777&0.4896&6.5591&15.8137&5.6772\\
+%         $R^2$&0.7614&0.7054&0.8630&0.7395&0.6357&0.6938\\
+%         RPIQ&1.6081&1.5951&4.8820&2.7443&2.8456&2.0433\\
+%         \bottomrule
+%     \end{tabular}\selectlanguage{greek}
+% \end{table*}
+\begin{figure}[H]
+    \selectlanguage{english}
+    \begin{tikzpicture}
+        \begin{axis}[
+            ybar,
+            width=19cm,
+            height=11cm,
+            bar width=15pt,
+            enlargelimits=0.12,
+            legend style={at={(0.8,0.95)},
+              anchor=north,legend columns=1},
+            ylabel={Coefficient of Determinanation $R^2$},
+            symbolic x coords={OC, N, pH, Clay, Sand, CEC},
+            xtick=data,
+            nodes near coords,
+            nodes near coords align={vertical},
+            every node near coord/.append style={font=\footnotesize}
+            ]
+                \addplot[fill=abs, draw=black] coordinates {(OC, 0.700)(N, 0.620)(pH, 0.877)(Clay, 0.635)(Sand, 0.561)(CEC, 0.630)};
+                \addplot[fill=refl, draw=black] coordinates {(OC, 0.725)(N, 0.654)(pH, 0.867)(Clay, 0.686)(Sand, 0.576)(CEC, 0.641)};
+                \addplot[fill=abs1, draw=black] coordinates {(OC, 0.740)(N, 0.684)(pH, 0.887)(Clay, 0.686)(Sand, 0.639)(CEC, 0.681)};
+                \addplot[fill=refl1, draw=black] coordinates {(OC, 0.761)(N, 0.705)(pH, 0.863)(Clay, 0.739)(Sand, 0.635)(CEC, 0.693)};
+        \legend{No-Pooling-Abs-SG1,No-Pooling-Reflectances, Pooling-Abs-SG1, Pooling-Reflectances}
+        \end{axis}
+    \end{tikzpicture}
+    \selectlanguage{greek}
+    \caption{Συγκρίσεις των επιδόσεων του μοντέλου με βάση την χρήση ή μη επιπέδων συγκέντρωσης μεγίστων (\tl{Max Pooling}) για τις διαφορετικές εισόδους \tl{Absorbances-SG1} και \tl{Reflectances} με βάση την μετρική του συντελεστή προσδιορισμού στο σετ αξιολόγησης}
+\end{figure}
 
 Σύμφωνα με τους παραπάνω πίνακες, φαίνεται πως η η αφαίρεση όλων των επιπέδων συγκέντρωσης έχει ως αποτέλεσμα την σημαντική μείωση της επίδοσης του μοντέλου. Επίσης είναι σημαντικό να αναφερθεί πως η συγκεκριμένη παράμετρος μπορεί να επηρεάσει σε μεγάλο βαθμό το συνολικό μέγεθος του μοντέλου, για παράδειγμα η αφαίρεση του επιπέδου συγκέντρωσης μεγίστων από το βέλτιστο μοντέλο πολλαπλών εισόδων και εξόδων έχει ως αποτέλεσμα η δομή του να έχει 12,746,886 παραμέτρους ενώ με ένα επίπεδο συγκέντρωσης μεγίστων έχει περίπου 2,891,910 παραμέτρους. Κατά την δοκιμή της χρήσης διαφόρων αριθμών επιπέδων συγκέντρωσης διαπιστώθηκε πως η βέλτιστη επίδοση του μοντέλου επιτυγχάνεται με χρήση ενός επιπέδου συγκέντρωσης μεγίστων.
 
@@ -218,7 +330,7 @@
         Fully-connected&–&-&64&ReLU\\
         Fully-connected&–&-&32&ReLU\\
         Fully-connected&–&-&1&Linear\\
-        \hline
+        \addlinespace
         \textbf{Parameters}&&\multicolumn{3}{c}{2,891,910}\\
         \bottomrule
     \end{tabular}\selectlanguage{greek}
@@ -228,7 +340,6 @@
 \label{sec:refl-abs_sg1}
 Η χρήση των σπεκτρογραμμάτων που προκύπτουν από την ανακλαστικότητα \tl{Reflectance} του εδάφους παρατηρήθηκε πως αποτελεί την καταλληλότερη είσοδο για την πρόβλεψη των περισσοτέρων ιδιοτήτων, η χρήση της συγκεκριμένης εισόδου  εφαρμόζεται και στην προτεινόμενη υλοποίηση. Ωστόσο έπειτα από δοκιμές χρήσης διαφόρων μετασχηματισμών της εισόδου στο μοντέλο και την εξαγωγή προβλέψεων του, παρατηρήθηκε πως η χρήση της 1ης παραγώγου του μετασχηματισμού \tl{Savitzky-Golay} έχει καλύτερες επιδόσεις σε ορισμένες ιδιότητες σε σχέση με τα σπεκτρογράμματα ανακλαστικότητας. Οι διαφορές φαίνονται αναλυτικά στα παρακάτω διαγράμματα.
 
-\pgfplotsset{compat=1.16}
 \begin{figure}[H]
     \selectlanguage{english}
     \begin{tikzpicture}
@@ -289,16 +400,15 @@
 \section{Επίδοση μοντέλων πολλαπλών εξόδων -- μιας εξόδου}
 Η απόπειρα πρόβλεψης πολλαπλών ιδιοτήτων με τη χρήση ενός μοντέλου, απαιτεί μια πολυπλοκότερη διαδικασία εκπαίδευσης λόγω του μεγέθους του νέου μοντέλου. Το αποτέλεσμα ωστόσο είναι ικανοποιητικό. Παρόλο που παρατηρείται μια ελαφρώς χειρότερη επίδοση για όλες τις εξόδους, οι προβλέψεις του μοντέλου είναι κοντά σε αυτές των μοντέλων πρόβλεψης μιας ιδιότητας εδάφους, πράγμα που δείχνει πως η διαδικασία εκπαίδευσης ενός ξεχωριστού μοντέλου για κάθε ιδιότητα είναι σπάταλη. Αυτό διαπιστώνεται με την διαφορά στον χρόνο εκπαίδευσης των 2 ειδών μοντέλων, αλλά λόγω την πρακτική της εξαγωγής αποτελεσμάτων, επειδή χρειάζονται τόσα διαφορετικά μοντέλα όσες και οι ιδιότητες που προβλέπονται. Ωστόσο το πλήθος των παραμέτρων είναι ανάλογο του αριθμού των εξόδων του μοντέλου, σε σχέση με ένα μοντέλο μιας εξόδου.
 
+Κάτι που πρέπει να αναφερθεί είναι πως η εξαγωγή προβλέψεων για την ιδιότητα της περιεκτικότητας των υλικών υφής σε ιλύ \tl{Silt}, για τα μοντέλα πολλαπλών εξόδων η συγκεκριμένη έξοδος αφαιρέθηκε από τα μοντέλα καθώς παρατηρήθηκε η μείωση της μέσης επίδοσης του μοντέλου για όλες τις υπόλοιπες ιδιότητες. Έτσι για την πρόβλεψη αυτής της εδαφικής ιδιότητας χρησιμοποιήθηκαν οι προβλέψεις του μοντέλου για τις ιδιότητες της άμμου \tl{Sand} και του άργιλου \tl{Clay}, με την εφαρμογή του τύπου $Silt=100-Sand-Clay$, ενώ για τα μοντέλα μιας εξόδου εκπαίδευτηκε κανονικά μοντέλο και για αυτή την ιδιότητα.
+
 \section{Διαγράμματα σύγκρισης μοντέλων με την προτεινόμενη υλοποίηση}
 
 Στην συγκεκριμένη υποενότητα θα παρουσιαστούν οι διάφορες πιθανές υλοποιήσεις του βέλτιστου μοντέλου σε σύγκριση με τις προτεινόμενες υλοποιήσεις. Τα μοντέλα που συγκρίνονται είναι τα \tl{Suggested SISO} και \tl{SIMO} δηλαδή τα προτεινόμενα μοντέλα στην μορφή μιας εισόδου και μιας ή πολλαπλών εξόδων για κάθε εδαφική ιδιότητα τα οποία έχουν δοκιμαστεί σύμφωνα με τις παραμέτρους της μεθοδολογίας των \tl{Padarian et.al}. Οι παράμετροι είναι, η χρήση 20 εποχών για την εκπαίδευση και της παρτίδας κανονικοποίησης μεγέθους 10 ενώ χρησιμοποιήθηκε ο βελτιστοποιητής \tl{Adam}. Τα μοντέλα τα οποία παρουσιάζονται ως βέλτιστα σύμφωνα με την μεθοδολογία της παρούσας διπλωματικής εργασίας είναι τα \tl{Reduced SISO, SIMO, MIMO} και \tl{MISO} τα οποία προκύπτουν από όλους τα πιθανούς συνδυασμούς πλήθους εισόδων και εξόδων. Η αρχιτεκτονική του είναι της μορφής του πίνακα \ref{fig:best_model}, ενώ οι παράμετροι τους είναι, 100 εποχές για την εκπαίδευση των μοντέλων μιας εισόδου η 300 εποχές για τα μοντέλα πολλαπλών εξόδων, μέγεθος κανονικοποίησης παρτίδας 48 και χρήση του βελτιστοποιητή \tl{Nadam}.\\
 
 Για τα μοντέλα μιας εισόδου χρησιμοποιήθηκε μόνο η είσοδος των σπεκτρογραμμάτων ανακλαστικότητας ώστε να υπάρχει μια κοινή βάση σύγκρισης, αλλά και για απλούστευση της διαδικασίας με την αποφυγή της επιλογής των μοντέλων, με χρήση διαφορετικής εισόδου κάθε φορά ανά ιδιότητα όπως θα προέκυπτε ιδανικά από τα συμπεράσματα της υποενότητας \ref{sec:refl-abs_sg1}. Στις εξόδους των μοντέλων προβλέπονται όλες οι εδαφικές ιδιότητες που αναφέρθηκαν στην υποενότητα \ref{sec:props-spectrograms} του κεφαλαίου \ref{ch:lucas_soil}.\\
 
-Κάτι που πρέπει να αναφερθεί επίσης είναι πως η εξαγωγή προβλέψεων για την ιδιότητα της περιεκτικότητας των υλικών υφής σε ιλύ \tl{Silt}, για τα μοντέλα πολλαπλών εξόδων η συγκεκριμένη έξοδος αφαιρέθηκε από τα μοντέλα καθώς παρατηρήθηκε η μείωση της μέσης επίδοσης του μοντέλου για όλες τις υπόλοιπες ιδιότητες. Έτσι για την πρόβλεψη αυτής της εδαφικής ιδιότητας χρησιμοποιήθηκαν οι προβλέψεις του μοντέλου για τις ιδιότητες της άμμου \tl{Sand} και του άργιλου \tl{Clay}, με την εφαρμογή του τύπου $Silt=100-Sand-Clay$, ενώ για τα μοντέλα μιας εξόδου εκπαίδευτηκε κανονικά μοντέλο και για αυτή την ιδιότητα. \todo{Ίσως να αναφέρω εδώ για την εξαγωγή των προβλέψεων του Silt..;}
-
-
-Στα παρακάτω διαγράμματα φαίνονται τα θηκογράμματα του απόλυτου σφάλματος των μοντέλων προς σύγκριση. Σε κάθε θηκόγραμμα έχουν αγνοηθεί ορισμένες εξωκείμενες τιμές με σκοπό την καθαρή απεικόνιση του τυπικού εύρους των σφαλμάτων.
+Στα παρακάτω διαγράμματα φαίνονται τα θηκογράμματα του απόλυτου σφάλματος των μοντέλων προς σύγκριση. Σε κάθε θηκόγραμμα έχουν αγνοηθεί ορισμένες εξωκείμενες τιμές με σκοπό την καθαρή απεικόνιση του τυπικού εύρους των σφαλμάτων πρόβλεψης.
 
 \begin{figure}[H]
     \begin{subfigure}{0.5\textwidth}
@@ -312,24 +422,26 @@
         \label{fig:CEC_boxplot}
     \end{subfigure}
     \caption{Θηκογράμματα απόλυτου σφάλματος για τις ιδιότητες \tl{OC} και \tl{CEC}}
+    \label{fig:boxpl-OC-CEC}
 \end{figure}
 \begin{figure}[H]
     \begin{subfigure}{0.5\textwidth}
         \includegraphics[width=1\linewidth]{RESULTS/BOXPLOTS/Clay.pdf}
-        \caption{Σύγκριση μοντέλων για την ιδιότητα την περιεκτικότητα σε άργιλο}
+        \caption{Σύγκριση μοντέλων για την ιδιότητα της περιεκτικότητας σε άργιλο}
         \label{fig:Clay_boxplot}
     \end{subfigure}
     \begin{subfigure}{0.5\textwidth}
         \includegraphics[width=1\linewidth]{RESULTS/BOXPLOTS/Sand.pdf}
-        \caption{Σύγκριση μοντέλων για την ιδιότητα την περιεκτικότητα σε άμμο}
+        \caption{Σύγκριση μοντέλων για την ιδιότητα της περιεκτικότητας σε άμμο}
         \label{fig:Sand_boxplot}
     \end{subfigure}
     \caption{Θηκογράμματα απόλυτου σφάλματος για τις ιδιότητες \tl{Clay} και \tl{Sand}}
+    \label{fig:boxpl-Clay-Sand}
 \end{figure}
 \begin{figure}[H]
     \begin{subfigure}{0.5\textwidth}
         \includegraphics[width=1\linewidth]{RESULTS/BOXPLOTS/pH.pdf}
-        \caption{Σύγκριση μοντέλων για την ιδιότητα την περιεκτικότητα του \tl{pH} στο νερό}
+        \caption{Σύγκριση μοντέλων για την ιδιότητα του \tl{pH} στο νερό του εδάφους}
         \label{fig:pH_boxplot}
     \end{subfigure}
     \begin{subfigure}{0.5\textwidth}
@@ -338,11 +450,12 @@
         \label{fig:N_boxplot}
     \end{subfigure}
     \caption{Θηκογράμματα απόλυτου σφάλματος για τις ιδιότητες \tl{pH} και \tl{N}}
+    \label{fig:boxpl-pH-N}
 \end{figure}
 \begin{figure}[H]
     \begin{subfigure}{0.5\textwidth}
         \includegraphics[width=1\linewidth]{RESULTS/BOXPLOTS/CaCO3.pdf}
-        \caption{Σύγκριση μοντέλων για την ιδιότητα την περιεκτικότητα ανθρακικού ασβεστίου στο έδαφος}
+        \caption{Σύγκριση μοντέλων για την ιδιότητα της περιεκτικότητας ανθρακικού ασβεστίου στο έδαφος}
         \label{fig:CaCO3_boxplot}
     \end{subfigure}
     \begin{subfigure}{0.5\textwidth}
@@ -351,22 +464,24 @@
         \label{fig:P_boxplot}
     \end{subfigure}
     \caption{Θηκογράμματα απόλυτου σφάλματος για τις ιδιότητες \tl{CaCO3} και \tl{P}}
+    \label{fig:boxpl-CaCO3-P}
 \end{figure}
 \begin{figure}[H]
     \begin{subfigure}{0.5\textwidth}
         \includegraphics[width=1\linewidth]{RESULTS/BOXPLOTS/K.pdf}
-        \caption{Σύγκριση μοντέλων για την ιδιότητα την περιεκτικότητα του καλίου στο έδαφος}
+        \caption{Σύγκριση μοντέλων για την ιδιότητα της περιεκτικότητας του καλίου στο έδαφος}
         \label{fig:K_boxplot}
     \end{subfigure}
     \begin{subfigure}{0.5\textwidth}
         \includegraphics[width=1\linewidth]{RESULTS/BOXPLOTS/Silt.pdf}
-        \caption{Σύγκριση μοντέλων για την ιδιότητα την περιεκτικότητα του εδάφους σε ιλύ}
+        \caption{Σύγκριση μοντέλων για την ιδιότητα της περιεκτικότητας του εδάφους σε ιλύ}
         \label{fig:Silt_boxplot}
     \end{subfigure}
     \caption{Θηκογράμματα απόλυτου σφάλματος για τις ιδιότητες \tl{K} και \tl{Silt}}
+    \label{fig:boxpl-K-Silt}
 \end{figure}
 
-Στα παράπανω θηκογράμματα φαίνεται πως η επίδοση των βέλτιστων μοντέλων είναι αισθητά καλύτερη από αυτή των προτεινόμενων κάτι που εξακριβώνεται από την θέση της διαμέσου $Q_{50}$ αλλά και της μορφής του διαστήματος μεταξύ του 3ου $Q_{75}$ τεταρτημορίου και του μέγιστου σφάλματος. Ανάμεσα στα μοντέλα της βέλτιστης αρχιτεκτονικής φαίνεται πως η χρήση πολλαπλών εισόδων έχει αυξημένες επιδόσεις σε σχέση με αυτά της μονής εισόδου σπεκτρογράμματος ανακλαστικότητας για αρκετές από τις ιδιότητες.
+Στα θηκογράμματα των σχημάτων \ref{fig:boxpl-OC-CEC} με \ref{fig:boxpl-K-Silt} φαίνεται πως η επίδοση των βέλτιστων μοντέλων είναι αισθητά καλύτερη από αυτή των προτεινόμενων κάτι που εξακριβώνεται από την θέση της διαμέσου $Q_{50}$ αλλά και της μορφής του διαστήματος μεταξύ του 3ου $Q_{75}$ τεταρτημορίου και του μέγιστου σφάλματος. Ανάμεσα στα μοντέλα της βέλτιστης αρχιτεκτονικής φαίνεται πως η χρήση πολλαπλών εισόδων έχει αυξημένες επιδόσεις σε σχέση με αυτά της μονής εισόδου σπεκτρογράμματος ανακλαστικότητας για αρκετές από τις ιδιότητες.
 
 \begin{figure}[H]
     \begin{subfigure}{0.5\textwidth}
@@ -380,24 +495,26 @@
         \label{fig:CEC_determ}
     \end{subfigure}
     \caption{Ραβδογράμματα συντελεστή προσδιορισμού για τις ιδιότητες \tl{OC} και \tl{CEC}}
+    \label{fig:barpl-OC-CEC}
 \end{figure}
 \begin{figure}[H]
     \begin{subfigure}{0.5\textwidth}
         \includegraphics[width=1\linewidth]{RESULTS/BARPLOTS/test_Clay_determ.pdf}
-        \caption{Σύγκριση μοντέλων για την ιδιότητα την περιεκτικότητα σε άργιλο}
+        \caption{Σύγκριση μοντέλων για την ιδιότητα της περιεκτικότητας σε άργιλο}
         \label{fig:Clay_determ}
     \end{subfigure}
     \begin{subfigure}{0.5\textwidth}
         \includegraphics[width=1\linewidth]{RESULTS/BARPLOTS/test_Sand_determ.pdf}
-        \caption{Σύγκριση μοντέλων για την ιδιότητα την περιεκτικότητα σε άμμο}
+        \caption{Σύγκριση μοντέλων για την ιδιότητα της περιεκτικότητας σε άμμο}
         \label{fig:Sand_determ}
     \end{subfigure}
     \caption{Ραβδογράμματα συντελεστή προσδιορισμού για τις ιδιότητες \tl{Clay} και \tl{Sand}}
+    \label{fig:barpl-Clay-Sand}
 \end{figure}
 \begin{figure}[H]
     \begin{subfigure}{0.5\textwidth}
         \includegraphics[width=1\linewidth]{RESULTS/BARPLOTS/test_pH_determ.pdf}
-        \caption{Σύγκριση μοντέλων για την ιδιότητα την περιεκτικότητα του \tl{pH} στο νερό}
+        \caption{Σύγκριση μοντέλων για την ιδιότητα του \tl{pH} στο νερό του εδάφους}
         \label{fig:pH_determ}
     \end{subfigure}
     \begin{subfigure}{0.5\textwidth}
@@ -406,11 +523,12 @@
         \label{fig:N_determ}
     \end{subfigure}
     \caption{Ραβδογράμματα συντελεστή προσδιορισμού για τις ιδιότητες \tl{pH} και \tl{N}}
+    \label{fig:barpl-pH-N}
 \end{figure}
 \begin{figure}[H]
     \begin{subfigure}{0.5\textwidth}
         \includegraphics[width=1\linewidth]{RESULTS/BARPLOTS/test_CaCO3_determ.pdf}
-        \caption{Σύγκριση μοντέλων για την ιδιότητα την περιεκτικότητα ανθρακικού ασβεστίου στο έδαφος}
+        \caption{Σύγκριση μοντέλων για την ιδιότητα της περιεκτικότητας ανθρακικού ασβεστίου στο έδαφος}
         \label{fig:CaCO3_determ}
     \end{subfigure}
     \begin{subfigure}{0.5\textwidth}
@@ -419,22 +537,24 @@
         \label{fig:P_determ}
     \end{subfigure}
     \caption{Ραβδογράμματα συντελεστή προσδιορισμού για τις ιδιότητες \tl{CaCO3} και \tl{P}}
+    \label{fig:barpl-CacCO3-Pc}
 \end{figure}
 \begin{figure}[H]
     \begin{subfigure}{0.5\textwidth}
         \includegraphics[width=1\linewidth]{RESULTS/BARPLOTS/test_K_determ.pdf}
-        \caption{Σύγκριση μοντέλων για την ιδιότητα την περιεκτικότητα του καλίου στο έδαφος}
+        \caption{Σύγκριση μοντέλων για την ιδιότητα της περιεκτικότητας του καλίου στο έδαφος}
         \label{fig:K_determ}
     \end{subfigure}
     \begin{subfigure}{0.5\textwidth}
         \includegraphics[width=1\linewidth]{RESULTS/BARPLOTS/test_Silt_determ.pdf}
-        \caption{Σύγκριση μοντέλων για την ιδιότητα την περιεκτικότητα του εδάφους σε ιλύ}
+        \caption{Σύγκριση μοντέλων για την ιδιότητα της περιεκτικότητας του εδάφους σε ιλύ}
         \label{fig:Silt_determ}
     \end{subfigure}
     \caption{Ραβδογράμματα συντελεστή προσδιορισμού για τις ιδιότητες \tl{K} και \tl{Silt}}
+    \label{fig:barpl-K-Silt}
 \end{figure}
 
-\todo{Σχολιασμός}
+Στα ραβδογράμματα των σχημάτων \ref{fig:barpl-OC-CEC} με \ref{fig:barpl-K-Silt} φαίνεται μια πιο ποιοτική απεικόνιση της βελτίωσης που υπάρχει στην επίδοση του βέλτιστου και του προτεινόμενου μοντέλου με την χρήση της μετρικής του συντελεστή προσδιορισμού για κάθε εδαφική ιδιότητα. Αξιοσημείωτη είναι η διαφορά στα διαγράμματα των επιδόσεων στις προβλέψεις του φωσφόρου και του καλίου στα σχήματα \ref{fig:P_determ} και \ref{fig:K_determ} αντίστοιχα. Σημαντική είναι επίσης η βελτίωση της ικανότητας πρόβλεψης της περιεκτικότητας σε άμμο για την οποία παρατηρείται χαμηλός συντελεστής προσδιορισμού στο μοντέλο της προτεινόμενης υλοποίησης όπως φαίνεται στο σχήμα \ref{fig:Sand_determ}.
 
 \section{Οπτικοποίηση συνελικτικών φίλτρων του μοντέλου}
 Η φύση των δισδιάστατων νευρωνικών δικτύων τα καθιστά κατάλληλα για πειραματισμούς σχετικά με την μορφή της εισόδου που εισέρχεται στο μοντέλο σε κάθε επίπεδο του. Σε κάποιες περιπτώσεις οι μορφές των συνελικτικών φίλτρων θα μπορούσαν να ερμηνευτούν αναλόγως με τα χαρακτηριστικά που αφορούν την μορφή της εισόδου και την πληροφορία που αποσκοπείται να εξαχθεί από αυτή. Στην περίπτωση της εισόδου των μοντέλων που πραγματεύεται η παρούσα διπλωματική εργασία, τα μοτίβα που ανιχνεύονται στα σπεκτρογράμματα είναι ίσως κάποιες συγκεκριμένες διακυμάνσεις στις φασματικές υπογραφές και στους μετασχηματισμούς \tl{wavelet}.
@@ -488,6 +608,7 @@
         \label{fig:layer_1_filters}
     \end{subfigure}
     \caption{Μορφή της εξόδου του πρώτου δισδιάστατου συνελικτικού επιπέδου. Έξοδος για τα πρώτα 18 \tl{Feature Maps}}
+    \label{fig:layer_1_full}
 \end{figure}
 
 \begin{figure}[H]
@@ -502,6 +623,7 @@
         \label{fig:layer_2_stand}
     \end{subfigure}
     \caption{Μορφή της εξόδου μετά το επίπεδο της κανονικοποίησης παρτίδας. Έξοδος για τα πρώτα 18 \tl{Feature Maps}}
+    \label{fig:layer_2_full}
 \end{figure}
 
 \begin{figure}[H]
@@ -516,6 +638,7 @@
         \label{fig:layer_3_stand}
     \end{subfigure}
     \caption{Μορφή της εξόδου του πρώτου δισδιάστατου συνελικτικού επιπέδου μετά την συνάρτηση ενεργοποίησης \tl{ReLU}. Έξοδος για τα πρώτα 18 \tl{Feature Maps}}
+    \label{fig:layer_3_full}
 \end{figure}
 
 \begin{figure}[H]
@@ -530,6 +653,7 @@
         \label{fig:layer_4_stand}
     \end{subfigure}
     \caption{Μορφή της εξόδου μετά την συνάρτηση ενεργοποίησης \tl{ReLU} του πρώτου επιπέδου και της εφαρμογής συγκέντρωσης μεγίστων. Έξοδος για τα πρώτα 18 \tl{Feature Maps}}
+    \label{fig:layer_4_full}
 \end{figure}
 
 
@@ -552,6 +676,7 @@
         \label{fig:layer_5_filters}
     \end{subfigure}
     \caption{Μορφή της εξόδου του δευτερου δισδιάστατου συνελικτικού επιπέδου. Έξοδος για τα πρώτα 18 \tl{Feature Maps}}
+    \label{fig:layer_5_full}
 \end{figure}
 
 %\begin{figure}[htbp]
@@ -587,6 +712,7 @@
         \label{fig:layer_6_stand}
     \end{subfigure}
     \caption{Μορφή της εξόδου μετά το επίπεδο της κανονικοποίησης παρτίδας του δεύτερου συνελικτικού επιπέδου. Έξοδος για τα πρώτα 18 \tl{Feature Maps}}
+    \label{fig:layer_6_full}
 \end{figure}
 
 \begin{figure}[H]
@@ -601,16 +727,17 @@
         \label{fig:layer_7_stand}
     \end{subfigure}
     \caption{Μορφή της εξόδου του δεύτερου δισδιάστατου συνελικτικού επιπέδου μετά την συνάρτηση ενεργοποίησης \tl{ReLU}. Έξοδος για τα πρώτα 18 \tl{Feature Maps}}
+    \label{fig:layer_7_full}
 \end{figure}
 
 Στις παραπάνω εικόνες φαίνεται ο τρόπος με τον οποίο ένα μοντέλο το οποίο έχει προηγουμένως εκπαιδευτεί, επεξεργάζεται την μονοκαναλική εικόνα εισόδου σε όλα τα επίπεδα τα οποία έχει δισδιάστατη μορφή.\\
 
-Στα δισδιάστατα συνελικτικά επίπεδα παρατηρείται πως η εικόνα εισόδου τροποποιείται σε διαφορετικές εκδοχές της ανάλογα με το συνελικτικό φίλτρο που εφαρμόζεται.\\
+Στα δισδιάστατα συνελικτικά επίπεδα των σχημάτων \ref{fig:layer_1_full} και \ref{fig:layer_5_full} παρατηρείται πως η εικόνα εισόδου τροποποιείται σε διαφορετικές εκδοχές της ανάλογα με το συνελικτικό φίλτρο που εφαρμόζεται.\\
 
-Στα επίπεδα κανονικιοποίησης παρτίδας είναι ορατή η κανονικοποίηση που υφίσταται το σύνολο των \tl{Feature Maps} σε σχέση με το εύρος τιμών που είχαν στα συνελικτικά επίπεδα.\\
+Στα επίπεδα κανονικοποίησης παρτίδας των σχημάτων \ref{fig:layer_2_full} και \ref{fig:layer_6_full} είναι ορατή η κανονικοποίηση που υφίσταται το σύνολο των \tl{Feature Maps} σε σχέση με το εύρος τιμών που είχαν στα συνελικτικά επίπεδα.\\
 
-Στα επίπεδα ενεργοποίησης με χρήση ανορθωμένης γραμμικής συνάρτησης \tl{ReLU} φαίνεται πως η εφαρμογή της συνάρτησης ενεργοποίσης επιτρέπει μόνο στα μέρη των εικόνων με μεγαλύτερες τιμές, τα οποία πιθανώς περιέχουν χρήσιμη πληροφορία, να μεταφερθούν προς το επόμενο επίπεδο.\\
+Στα επίπεδα ενεργοποίησης με χρήση ανορθωμένης γραμμικής συνάρτησης \tl{ReLU}, τα οποία απεικονίζονται στα σχήματα \ref{fig:layer_3_full} και \ref{fig:layer_7_full}, φαίνεται πως η εφαρμογή της συνάρτησης ενεργοποίησης επιτρέπει μόνο στα μέρη των εικόνων με μεγαλύτερες τιμές, τα οποία πιθανώς περιέχουν χρήσιμη πληροφορία, να μεταφερθούν προς το επόμενο επίπεδο.\\
 
-Τα επίπεδα συγκέντρωσης μεγίστων τροποποιούν την είσοδο τους μειώνοντας τις διαστάσεις της ενώ διατηρούν τα μέγιστα των περιοχών τις οποίες συγκεντρώνουν. Το αποτέλεσμα οπτικά φαίνεται σαν μια σμίκρυνση της εικόνας εισόδου.\\
+Το επίπεδα συγκέντρωσης μεγίστων, του οποίου η έξοδος φαίνεται στο σχήμα \ref{fig:layer_4_full}, τροποποιεί την είσοδο τους μειώνοντας τις διαστάσεις της ενώ διατηρούν τα μέγιστα των περιοχών τις οποίες συγκεντρώνουν. Το αποτέλεσμα οπτικά φαίνεται σαν μια σμίκρυνση της εικόνας εισόδου.\\
 
-Κατά την επεξεργασία της εισόδου από το δισδιάστατο συνελικτικό νευρωνικό δίκτυο η μορφή της εικόνας τροποποιείται σημαντικά με αποτέλεσμα μετά το συνελικτικό επίπεδο 5 η εικόνα να μην έχει καμία ομοιότητα με την αρχική της μορφή.
+Κατά την επεξεργασία της εισόδου από το δισδιάστατο συνελικτικό νευρωνικό δίκτυο η μορφή της εικόνας τροποποιείται σημαντικά με αποτέλεσμα μετά το συνελικτικό επίπεδο 5 του σχήματος \ref{fig:layer_5_full}, η εικόνα να μην έχει καμία ομοιότητα με την αρχική της μορφή.
