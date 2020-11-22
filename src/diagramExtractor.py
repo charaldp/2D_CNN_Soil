@@ -53,6 +53,7 @@ def fixbarplots(ax, data_set, prop, width, metric, metrics_symbols):
     j = 0
     for index, row in data_set[metric].iterrows():
         ax.text(j,row[prop]*1.01, round(row[prop],3), color='black', ha="center", fontsize=10)
+        ax.set_xticklabels(ax.get_xticklabels(), rotation=40, ha="right", fontsize=11)
         j+=1
     for patch in ax.patches :
         current_width = patch.get_width()
@@ -269,7 +270,9 @@ if args.mode == 'boxplots':
         # plt.show()
         positions = np.arange(1, center_offset * (len(labels)) + 1, center_offset)
         ax.set_xticks(positions)
-        ax.set_xticklabels(labels)
+        # ax.set_xticklabels(labels)
+        ax.set_xticklabels(labels, rotation=40, ha="right", fontsize=11)
+
         # figManager = plt.get_current_fig_manager()
         # figManager.window.showMaximized()
         plt.savefig(path_datetime+'/'+prop+'.pdf',format='pdf', dpi=1000, bbox_inches='tight')
