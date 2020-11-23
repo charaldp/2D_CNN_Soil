@@ -234,7 +234,7 @@ if args.mode == 'boxplots':
         sets_char = ''
         for set_char in args.useSet:
             sets_char = sets_char+set_char
-        ax.set_title(prop+' '+sets_char+' Absolute Error')
+        # ax.set_title(prop+' '+sets_char+' Absolute Error')
         for j, folder in enumerate(args.folders):
             test_pred, test_actual, val_pred, val_actual, train_pred, train_actual = extractPropertyErrors(data_test, data_val, data_train, j, folder, prop, args)
             if 'Test' in args.useSet:
@@ -270,6 +270,7 @@ if args.mode == 'boxplots':
         # plt.show()
         positions = np.arange(1, center_offset * (len(labels)) + 1, center_offset)
         ax.set_xticks(positions)
+        plt.ylabel(prop+' '+sets_char+' Absolute Error', fontsize=12)
         # ax.set_xticklabels(labels)
         ax.set_xticklabels(labels, rotation=40, ha="right", fontsize=11)
 
