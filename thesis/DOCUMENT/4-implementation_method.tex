@@ -143,7 +143,7 @@ $$Absorbance=-log_{10}(Reflectance)$$
 \]
 Όπου $x[i]$ το δείγμα $i$ του φάσματος μετά τον μετασχηματισμό \tl{Savitzky-Golay} και $y[i]$ η τελική μορφή του σήματος.\\
 
-Η μορφή της φασματικής υπογραφής όταν μετά τον μετασχηματισμό \tl{Savitzky-Golay} και τελικά μετά την κανονικοποίηση και την διόρθωση των αρχικών φαίνεται στα σχήματα \ref{fig:abs_sg1_transform_notches} και \ref{fig:abs_sg1_transform_fixed} αντίστοιχα.\\
+Η μορφή της φασματικής υπογραφής όταν μετά τον μετασχηματισμό \tl{Savitzky-Golay} και τελικά μετά την κανονικοποίηση και την διόρθωση του αρχικού μέρους του σήματος φαίνεται στα σχήματα \ref{fig:abs_sg1_transform_notches} και \ref{fig:abs_sg1_transform_fixed} αντίστοιχα.\\
 
 \begin{figure}[H]
     \begin{subfigure}{0.5\textwidth}
@@ -157,13 +157,13 @@ $$Absorbance=-log_{10}(Reflectance)$$
         \label{fig:abs_sg1_abs}
     \end{subfigure}
     \begin{subfigure}{0.5\textwidth}
-        \includesvg[width=1\linewidth]{IMPLEMENTATION_METHOD/0_Abs_SG1}
+        \includesvg[width=1\linewidth]{IMPLEMENTATION_METHOD/0_Abs_SG1_NotFixed}
         \caption{Φασματική υπογραφή μετά στον μετασχηματισμό \tl{Savitzky-Golay} 1ης παραγώγου}
         \label{fig:abs_sg1_transform_notches}
     \end{subfigure}
     \begin{subfigure}{0.5\textwidth}
         \includesvg[width=1\linewidth]{IMPLEMENTATION_METHOD/0_Abs_SG1_Fixed}
-        \caption{Μορφή φασματικής υπογραφής μετά τη μετατροπή σε απορροφητικότητα}
+        \caption{Μορφή φασματικής υπογραφής μετά  την διόρθωση του αρχικού μέρους του σήματος και την κανονικοποίηση του}
         \label{fig:abs_sg1_transform_fixed}
     \end{subfigure}
     \caption{Απεικόνιση φασματικής υπογραφής κατά τα στάδια της μετατροπής της σε μετασχηματισμό \tl{Savitzky-Golay} πρώτης παραγώγου}
